@@ -8,3 +8,4 @@ php "$D/integration.php" | grep -v '^  ok' | tail -12
 python3 "$D/http_test.py" "$(cat /tmp/last_ticket_id)" | grep -v '^  ok' | tail -14
 python3 "$D/rights_test.py" "$(cat /tmp/last_ticket_id)" | grep -v "^  ok" | tail -14
 python3 "$D/visibility_test.py" | grep -v "^  ok" | tail -14
+python3 "$D/language_test.py" | grep -v "^  ok" | tail -14

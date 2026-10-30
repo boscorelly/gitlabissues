@@ -1,0 +1,491 @@
+# GitLab Issues plugin for GLPI
+msgid ""
+msgstr ""
+"Project-Id-Version: gitlabissues\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/Controller/ConfigController.php
+msgid "The GitLab URL must start with http:// or https://"
+msgstr "The GitLab URL must start with http:// or https://"
+
+#: src/Controller/ConfigController.php
+msgid "Settings saved."
+msgstr "Settings saved."
+
+#: src/Controller/ConfigController.php
+msgid "Rights updated."
+msgstr "Rights updated."
+
+#: src/Controller/ConfigController.php
+msgid "Connection successful: GitLab %1$s, authenticated as %2$s."
+msgstr "Connection successful: GitLab %1$s, authenticated as %2$s."
+
+#: src/Controller/ConfigController.php
+msgid "This token has no \"api\" scope: it can read issues but not create them."
+msgstr "This token has no \"api\" scope: it can read issues but not create them."
+
+#: src/Controller/IssueController.php
+msgid "GitLab issue created: %s"
+msgstr "GitLab issue created: %s"
+
+#: src/Controller/IssueController.php
+msgid "Status: %s"
+msgstr "Status: %s"
+
+#: src/Controller/IssueController.php
+msgid "The issue is no longer followed. It was not changed on GitLab."
+msgstr "The issue is no longer followed. It was not changed on GitLab."
+
+#: src/GitlabClient.php
+msgid "GitLab URL or token is not configured."
+msgstr "GitLab URL or token is not configured."
+
+#: src/GitlabClient.php
+msgid "Cannot reach GitLab: %s"
+msgstr "Cannot reach GitLab: %s"
+
+#: src/GitlabClient.php
+msgid "Unexpected (non-JSON) answer from GitLab. Is the URL correct?"
+msgstr "Unexpected (non-JSON) answer from GitLab. Is the URL correct?"
+
+#: src/GitlabClient.php
+msgid "GitLab refused access (HTTP %d)%s"
+msgstr "GitLab refused access (HTTP %d)%s"
+
+#: src/GitlabClient.php
+msgid "Not found on GitLab (HTTP 404)%s"
+msgstr "Not found on GitLab (HTTP 404)%s"
+
+#: src/GitlabClient.php
+msgid "GitLab rate limit reached (HTTP 429)"
+msgstr "GitLab rate limit reached (HTTP 429)"
+
+#: src/GitlabClient.php
+msgid "GitLab server error (HTTP %d)"
+msgstr "GitLab server error (HTTP %d)"
+
+#: src/GitlabClient.php
+msgid "GitLab rejected the request (HTTP %d)%s"
+msgstr "GitLab rejected the request (HTTP %d)%s"
+
+#: src/GitlabClient.php
+msgid "GitLab did not return the created issue."
+msgstr "GitLab did not return the created issue."
+
+#: src/GitlabClient.php
+msgid "Cannot read file %s"
+msgstr "Cannot read file %s"
+
+#: src/GitlabClient.php
+msgid "GitLab did not accept file %s"
+msgstr "GitLab did not accept file %s"
+
+#: src/IssueBuilder.php
+msgid "(no description)"
+msgstr "(no description)"
+
+#: src/IssueBuilder.php
+msgid "Attachments"
+msgstr "Attachments"
+
+#: src/IssueBuilder.php
+msgid "(description truncated)"
+msgstr "(description truncated)"
+
+#: src/IssueBuilder.php
+msgid "The ticket description was too long and has been truncated."
+msgstr "The ticket description was too long and has been truncated."
+
+#: src/IssueBuilder.php
+msgid "Created from GLPI ticket %1$s by %2$s on %3$s"
+msgstr "Created from GLPI ticket %1$s by %2$s on %3$s"
+
+#: src/IssueBuilder.php
+msgid "Created from GLPI ticket %1$s on %2$s"
+msgstr "Created from GLPI ticket %1$s on %2$s"
+
+#: src/IssueBuilder.php
+msgid "Ticket"
+msgstr "Ticket"
+
+#: src/IssueBuilder.php
+msgid "Opened on"
+msgstr "Opened on"
+
+#: src/IssueBuilder.php
+msgid "Status"
+msgstr "Status"
+
+#: src/IssueBuilder.php
+msgid "Priority"
+msgstr "Priority"
+
+#: src/IssueBuilder.php
+msgid "Urgency"
+msgstr "Urgency"
+
+#: src/IssueBuilder.php
+msgid "Impact"
+msgstr "Impact"
+
+#: src/IssueBuilder.php
+msgid "Category"
+msgstr "Category"
+
+#: src/IssueBuilder.php
+msgid "Entity"
+msgstr "Entity"
+
+#: src/IssueBuilder.php
+msgid "Requester"
+msgstr "Requester"
+
+#: src/IssueBuilder.php
+msgid "Assigned to"
+msgstr "Assigned to"
+
+#: src/IssueBuilder.php
+msgid "Attachment not copied (limit of %d files): %s"
+msgstr "Attachment not copied (limit of %d files): %s"
+
+#: src/IssueBuilder.php
+msgid "Attachment not found on disk: %s"
+msgstr "Attachment not found on disk: %s"
+
+#: src/IssueBuilder.php
+msgid "Attachment not copied (larger than %d MB): %s"
+msgstr "Attachment not copied (larger than %d MB): %s"
+
+#: src/IssueBuilder.php
+msgid "Attachment not copied (%1$s): %2$s"
+msgstr "Attachment not copied (%1$s): %2$s"
+
+#: src/Link.php
+msgid "Create an issue"
+msgstr "Create an issue"
+
+#: src/Link.php
+msgid "Refresh the status"
+msgstr "Refresh the status"
+
+#: src/Link.php
+msgid "Unlink"
+msgstr "Unlink"
+
+#: src/Link.php
+msgid "Open"
+msgstr "Open"
+
+#: src/Link.php
+msgid "Closed"
+msgstr "Closed"
+
+#: src/Link.php
+msgid "Not found on GitLab"
+msgstr "Not found on GitLab"
+
+#: src/Link.php
+msgid "Moved to another project"
+msgstr "Moved to another project"
+
+#: src/Link.php
+msgid "Select a GitLab project."
+msgstr "Select a GitLab project."
+
+#: src/Link.php
+msgid "Another issue creation is in progress for this ticket, try again in a moment."
+msgstr "Another issue creation is in progress for this ticket, try again in a moment."
+
+#: src/Link.php
+msgid "This ticket already has an open issue in this project."
+msgstr "This ticket already has an open issue in this project."
+
+#: src/Link.php
+msgid "The issue was created on GitLab (%s) but could not be linked to the ticket."
+msgstr "The issue was created on GitLab (%s) but could not be linked to the ticket."
+
+#: src/Link.php
+msgid "GitLab issue"
+msgid_plural "GitLab issues"
+msgstr[0] "GitLab issue"
+msgstr[1] "GitLab issues"
+
+#: src/RequesterNotice.php
+msgid "Your request has been taken into account by the technical team and forwarded to the people in charge of the development. You will be informed of the outcome."
+msgstr "Your request has been taken into account by the technical team and forwarded to the people in charge of the development. You will be informed of the outcome."
+
+#: src/RequesterNotice.php
+msgid "The technical work related to your request is complete."
+msgstr "The technical work related to your request is complete."
+
+#: src/Sync.php
+msgid "Check the GitLab issues linked to tickets"
+msgstr "Check the GitLab issues linked to tickets"
+
+#: src/Sync.php
+msgid "Maximum number of issues checked per run"
+msgstr "Maximum number of issues checked per run"
+
+#: src/Sync.php
+msgid "The GitLab issue %s can no longer be found (deleted, or access removed). It is not followed anymore."
+msgstr "The GitLab issue %s can no longer be found (deleted, or access removed). It is not followed anymore."
+
+#: src/Sync.php
+msgid "The GitLab issue %s has been closed"
+msgstr "The GitLab issue %s has been closed"
+
+#: src/Sync.php
+msgid "by %s"
+msgstr "by %s"
+
+#: src/Sync.php
+msgid "on %s"
+msgstr "on %s"
+
+#: src/Sync.php
+msgid "Closing merge request(s):"
+msgstr "Closing merge request(s):"
+
+#: src/Sync.php
+msgid "The GitLab issue %s was moved to another project. It is not followed anymore: the ticket is left unchanged."
+msgstr "The GitLab issue %s was moved to another project. It is not followed anymore: the ticket is left unchanged."
+
+#: templates/config.html.twig
+msgid "GitLab Issues"
+msgstr "GitLab Issues"
+
+#: templates/config.html.twig
+msgid "GitLab connection"
+msgstr "GitLab connection"
+
+#: templates/config.html.twig
+msgid "GitLab URL"
+msgstr "GitLab URL"
+
+#: templates/config.html.twig
+msgid "Access token"
+msgstr "Access token"
+
+#: templates/config.html.twig
+msgid "(unchanged)"
+msgstr "(unchanged)"
+
+#: templates/config.html.twig
+msgid "A project or group access token with the \"api\" scope and the Reporter role (or more) is enough. It is stored encrypted."
+msgstr "A project or group access token with the \"api\" scope and the Reporter role (or more) is enough. It is stored encrypted."
+
+#: templates/config.html.twig
+msgid "Save and test the connection"
+msgstr "Save and test the connection"
+
+#: templates/config.html.twig
+msgid "Issue creation"
+msgstr "Issue creation"
+
+#: templates/config.html.twig
+msgid "Default project"
+msgstr "Default project"
+
+#: templates/config.html.twig
+msgid "Issue title"
+msgstr "Issue title"
+
+#: templates/config.html.twig
+msgid "Placeholders: {id} (ticket number) and {title}."
+msgstr "Placeholders: {id} (ticket number) and {title}."
+
+#: templates/config.html.twig
+msgid "Default labels"
+msgstr "Default labels"
+
+#: templates/config.html.twig
+msgid "Comma separated."
+msgstr "Comma separated."
+
+#: templates/config.html.twig
+msgid "Create confidential issues"
+msgstr "Create confidential issues"
+
+#: templates/config.html.twig
+msgid "Mention requesters and assignees in the issue"
+msgstr "Mention requesters and assignees in the issue"
+
+#: templates/config.html.twig
+msgid "Add a followup to the ticket when the issue is created"
+msgstr "Add a followup to the ticket when the issue is created"
+
+#: templates/config.html.twig
+msgid "Private followup"
+msgstr "Private followup"
+
+#: templates/config.html.twig
+msgid "When an issue is created, add a public followup (the technician can change this for each issue)"
+msgstr "When an issue is created, add a public followup (the technician can change this for each issue)"
+
+#: templates/config.html.twig
+msgid "Message to the requester"
+msgstr "Message to the requester"
+
+#: templates/config.html.twig
+msgid "Plain text. Empty = default message."
+msgstr "Plain text. Empty = default message."
+
+#: templates/config.html.twig
+msgid "Copy the ticket attachments and images to GitLab"
+msgstr "Copy the ticket attachments and images to GitLab"
+
+#: templates/config.html.twig
+msgid "Maximum attachment size (MB)"
+msgstr "Maximum attachment size (MB)"
+
+#: templates/config.html.twig
+msgid "When the issue is closed on GitLab"
+msgstr "When the issue is closed on GitLab"
+
+#: templates/config.html.twig
+msgid "For technicians"
+msgstr "For technicians"
+
+#: templates/config.html.twig
+msgid "Add a followup with the GitLab details (who closed the issue, when, merge requests)"
+msgstr "Add a followup with the GitLab details (who closed the issue, when, merge requests)"
+
+#: templates/config.html.twig
+msgid "For the requester"
+msgstr "For the requester"
+
+#: templates/config.html.twig
+msgid "Requesters, who are often not technicians, never see the GitLab tab. These neutral public messages tell them that their request was forwarded and completed, without any GitLab detail (project, developer, link). GLPI notifications apply to public followups."
+msgstr "Requesters, who are often not technicians, never see the GitLab tab. These neutral public messages tell them that their request was forwarded and completed, without any GitLab detail (project, developer, link). GLPI notifications apply to public followups."
+
+#: templates/config.html.twig
+msgid "Nothing"
+msgstr "Nothing"
+
+#: templates/config.html.twig
+msgid "A public followup with the message below"
+msgstr "A public followup with the message below"
+
+#: templates/config.html.twig
+msgid "The ticket is solved, with the message below as the solution (notifications and automatic actions apply)"
+msgstr "The ticket is solved, with the message below as the solution (notifications and automatic actions apply)"
+
+#: templates/config.html.twig
+msgid "Solution type (when the ticket is solved)"
+msgstr "Solution type (when the ticket is solved)"
+
+#: templates/config.html.twig
+msgid "Advanced: custom solution text"
+msgstr "Advanced: custom solution text"
+
+#: templates/config.html.twig
+msgid "Optional. Replaces the message above as the text of the solution (HTML allowed). Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. They show GitLab details to the requester."
+msgstr "Optional. Replaces the message above as the text of the solution (HTML allowed). Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. They show GitLab details to the requester."
+
+#: templates/config.html.twig
+msgid "Author"
+msgstr "Author"
+
+#: templates/config.html.twig
+msgid "Author of the automatic followups and solutions"
+msgstr "Author of the automatic followups and solutions"
+
+#: templates/config.html.twig
+msgid "The user who created the issue"
+msgstr "The user who created the issue"
+
+#: templates/config.html.twig
+msgid "Rights by profile"
+msgstr "Rights by profile"
+
+#: templates/config.html.twig
+msgid "Rights are cumulative: \"Read\" is required for the others. The same rights can be edited in the \"GitLab issues\" tab of each profile (Administration > Profiles). Self-service profiles cannot use the plugin."
+msgstr "Rights are cumulative: \"Read\" is required for the others. The same rights can be edited in the \"GitLab issues\" tab of each profile (Administration > Profiles). Self-service profiles cannot use the plugin."
+
+#: templates/config.html.twig
+msgid "Profile"
+msgstr "Profile"
+
+#: templates/config.html.twig
+msgid "You need the update right on profiles to change these rights."
+msgstr "You need the update right on profiles to change these rights."
+
+#: templates/config.html.twig
+msgid "Save the rights"
+msgstr "Save the rights"
+
+#: templates/config.html.twig
+msgid "Search a project…"
+msgstr "Search a project…"
+
+#: templates/profile.html.twig
+msgid "GitLab issues"
+msgstr "GitLab issues"
+
+#: templates/ticket_tab.html.twig
+msgid "No GitLab issue is linked to this ticket."
+msgstr "No GitLab issue is linked to this ticket."
+
+#: templates/ticket_tab.html.twig
+msgid "Issue"
+msgstr "Issue"
+
+#: templates/ticket_tab.html.twig
+msgid "Last check"
+msgstr "Last check"
+
+#: templates/ticket_tab.html.twig
+msgid "Refresh"
+msgstr "Refresh"
+
+#: templates/ticket_tab.html.twig
+msgid "Stop following this issue? It will not be changed on GitLab."
+msgstr "Stop following this issue? It will not be changed on GitLab."
+
+#: templates/ticket_tab.html.twig
+msgid "The plugin is not configured yet."
+msgstr "The plugin is not configured yet."
+
+#: templates/ticket_tab.html.twig
+msgid "Configure it"
+msgstr "Configure it"
+
+#: templates/ticket_tab.html.twig
+msgid "GitLab project"
+msgstr "GitLab project"
+
+#: templates/ticket_tab.html.twig
+msgid "Followup on the ticket"
+msgstr "Followup on the ticket"
+
+#: templates/ticket_tab.html.twig
+msgid "Private"
+msgstr "Private"
+
+#: templates/ticket_tab.html.twig
+msgid "Public"
+msgstr "Public"
+
+#: templates/ticket_tab.html.twig
+msgid "None"
+msgstr "None"
+
+#: templates/ticket_tab.html.twig
+msgid "Additional labels"
+msgstr "Additional labels"
+
+#: templates/ticket_tab.html.twig
+msgid "Create GitLab issue"
+msgstr "Create GitLab issue"
+
+#: templates/ticket_tab.html.twig
+msgid "Inform the requester with a public followup"
+msgstr "Inform the requester with a public followup"
+
+#: templates/ticket_tab.html.twig
+msgid "Create another issue even if one is already open in this project"
+msgstr "Create another issue even if one is already open in this project"

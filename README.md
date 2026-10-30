@@ -28,12 +28,17 @@ Tested on **GLPI 11.0.11** (PHP 8.3, MariaDB 10.11) against a mock of the GitLab
 | Failure while acting on the ticket | Everything rolled back; issue stays "open" and is retried, no duplicates |
 
 ## Informing the requester (non-technicians)
-Requesters never see the "GitLab issues" tab. By default they learn nothing about the issue. Two options (*Setup > Plugins > GitLab Issues > Inform the requester*)
+Requesters never see the "GitLab issues" tab. By default they learn nothing about the issue. Two options (*Setup > Plugins > GitLab Issues*: in the "Issue creation" section and in the "When the issue is closed on GitLab" section)
 add **neutral public followups**, with no GitLab detail (no project, link, developer or merge request):
 - when an issue is created (the technician can untick "Inform the requester" for a given issue): by default *"Your request has been taken into account by the technical team and forwarded to the people in charge of the development. You will be informed of the outcome."*
-- when the issue is closed: *"The technical work related to your request is complete."* If "Solve the ticket" is on, the solution carries this text instead (no extra followup).
+- when the issue is closed, one choice: nothing, a public followup, or **the ticket is solved** with this message as the solution: *"The technical work related to your request is complete."*
 
 Both texts can be changed. GLPI notifications apply to public followups and solutions. The technical details (who closed the issue, when, merge requests) remain in the **private** followups.
+
+## Languages
+English (`en_GB`, `en_US`) and French (`fr_FR`). The plugin uses **the language of each user if it has a translation for it, otherwise English**
+(GLPI alone would fall back on the instance's default language). The neutral messages written in the ticket for the requester follow the same rule (language of the interface of the person who triggers them; the instance's default language for the automatic action).
+To add a language: copy `locales/gitlabissues.pot` to `locales/<xx_XX>.po`, translate it, run `python3 tools/locales.py` from the git repository (needs `msgfmt`), clear GLPI's cache. Contributions welcome.
 
 ## Rights
 *Administration > Profiles > (profile) > GitLab issues* tab (last tab of the profile page) or the **Rights by profile** table of the plugin's configuration page: read, create, refresh, unlink. Rights are cumulative: **read is required** for

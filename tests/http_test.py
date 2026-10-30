@@ -52,6 +52,17 @@ def stored_rights(pid):
 s, page, _ = a.req('/plugins/gitlabissues/Config')
 check('configuration page shows the rights per profile', 'name="profiles[]"' in page and 'Technician' in page and 'name="rights[6][]"' in page)
 check('configuration page has the requester messages', 'name="notify_requester"' in page and 'name="notify_requester_close_text"' in page)
+check('closure: one single choice for the requester (3 options)', all(f'name="requester_close_mode" value="{v}"' in page for v in ('none', 'followup', 'solve')))
+check('no separate "inform the requester" section (title absent from the page)', 'Informer le demandeur</h3>' not in page and 'Inform the requester</h3>' not in page)
+def cfg(n):
+    return subprocess.run(['mysql', '-uroot', 'glpi', '-N', '-e', f"select value from glpi_configs where context='plugin:gitlabissues' and name='{n}'"], capture_output=True, text=True).stdout.strip()
+for mode, (solve, notice) in (('solve', ('1', '0')), ('followup', ('0', '1')), ('none', ('0', '0'))):
+    s, pg, _ = a.req('/plugins/gitlabissues/Config')
+    a.req('/plugins/gitlabissues/Config', {'_glpi_csrf_token': a.token(pg), 'requester_close_mode': mode})
+    s, pg, _ = a.req('/plugins/gitlabissues/Config')
+    check(f'closure choice "{mode}" is stored (solve={solve}, notice={notice}) and shown as selected',
+          (cfg('close_solve_ticket'), cfg('notify_requester_close')) == (solve, notice) and re.search(r'name="requester_close_mode" value="%s"\s+checked' % mode, pg) is not None,
+          f"{cfg('close_solve_ticket')}/{cfg('notify_requester_close')}")
 check('self-service profile is not listed', 'Self-Service' not in page)
 a.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': a.ajax_token(), 'profiles[]': ['6', '2'], 'rights[6][]': ['4']})
 check('rights table saves; ticking only "create" also stores "read" (5); unticked profile -> 0', stored_rights(6) == '5' and stored_rights(2) == '0', f'{stored_rights(6)} / {stored_rights(2)}')

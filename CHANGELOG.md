@@ -2,6 +2,13 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.4
+- **Languages**: English (`en_GB`, `en_US`) is now shipped next to French, with a translation template (`locales/gitlabissues.pot`) and a maintenance script (`tools/locales.py`). Language rule: **the user's language if the plugin has it, otherwise English**. Before, GLPI fell back on the instance's *default* language: on a French instance every user, English speakers included, got French.
+- The neutral messages for the requester follow the same rule: the language of the interface (the technician's when he creates the issue; the instance's default language for the automatic action), English if the plugin has no catalogue for it.
+- **Configuration page reorganised**: the "Inform the requester" section is gone, because it duplicated the "When the issue is closed" section. Each requester message now sits with the event it belongs to: the creation message in *Issue creation*, the closure message in *When the issue is closed on GitLab*.
+- At closure the requester gets **one choice** instead of interacting options: *nothing*, *a public followup with the message*, or *the ticket is solved with the message as the solution*. The technicians' followup (GitLab details) is a separate, clearly labelled option. The custom solution text, used by older versions, moves under "Advanced".
+- Nothing to migrate: the choice is stored in the existing settings, so installed configurations keep their behaviour (if both a public followup and the solution were enabled, the page shows "solved", which is what happened).
+
 ## 1.0.3
 - **Inform the requester** (new section in the configuration, and a box when creating an issue): neutral public followups telling a non-technician requester that his request was forwarded to the developers, and that the technical work is complete. No GitLab detail is ever included (project, link, developer, merge request); the technical details stay in the private followups. Texts are customisable; the technician can untick the box for a given issue.
 - The default text of the **solution** added when the issue is closed is now neutral (it used to name the GitLab project, the developer and the merge requests, which the requester could read). The details go to the private followup.

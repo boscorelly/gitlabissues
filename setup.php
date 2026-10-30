@@ -14,7 +14,7 @@ use Glpi\Plugin\Hooks;
 use GlpiPlugin\Gitlabissues\Link;
 use GlpiPlugin\Gitlabissues\Profile as PluginProfile;
 
-define('PLUGIN_GITLABISSUES_VERSION', '1.0.3');
+define('PLUGIN_GITLABISSUES_VERSION', '1.0.4');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_GITLABISSUES_MIN_GLPI', '11.0.0');
@@ -45,6 +45,9 @@ function plugin_init_gitlabissues(): void
     // Setup > Plugins > GitLab Issues > configuration (route /plugins/gitlabissues/Config,
     // access is checked by the controller).
     $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['gitlabissues'] = 'Config';
+
+    // Language fallback: English when the plugin has no catalogue for the user's language (see below).
+    $PLUGIN_HOOKS[Hooks::POST_INIT]['gitlabissues'] = 'plugin_gitlabissues_post_init';
 
     // Remove links when a ticket is purged.
     $PLUGIN_HOOKS[Hooks::ITEM_PURGE]['gitlabissues'] = [
@@ -79,4 +82,29 @@ function plugin_version_gitlabissues(): array
             ],
         ],
     ];
+}
+
+/**
+ * Language fallback.
+ *
+ * GLPI loads the plugin catalogue of the user's language, else the one of the instance's DEFAULT language,
+ * and only then English: on a French instance, a user whose language the plugin does not translate (English
+ * included) would get French. Here the rule is: the user's language if the plugin has it, otherwise English.
+ * The English catalogue is registered last for the user's locale, so it wins over what GLPI loaded.
+ */
+function plugin_gitlabissues_post_init(): void
+{
+    /**
+     * @var array $CFG_GLPI
+     * @var \Laminas\I18n\Translator\Translator $TRANSLATE
+     */
+    global $CFG_GLPI, $TRANSLATE;
+
+    $lang = $_SESSION['glpilanguage'] ?? ($CFG_GLPI['language'] ?? 'en_GB');
+    $dir  = Plugin::getPhpDir('gitlabissues') . '/locales/';
+    $file = $CFG_GLPI['languages'][$lang][1] ?? ($lang . '.mo');
+
+    if (!is_file($dir . $file) && is_file($dir . 'en_GB.mo')) {
+        $TRANSLATE->addTranslationFile('gettext', $dir . 'en_GB.mo', 'gitlabissues', $lang);
+    }
 }

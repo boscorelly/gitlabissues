@@ -51,6 +51,11 @@
             <label class="form-check"><input class="form-check-input" type="checkbox" name="include_people" value="1" {{ settings.include_people == '1' ? 'checked' }}><span class="form-check-label">{{ __('Mention requesters and assignees in the issue', 'gitlabissues') }}</span></label>
             <label class="form-check"><input class="form-check-input" type="checkbox" name="creation_followup" value="1" {{ settings.creation_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a followup to the ticket when the issue is created', 'gitlabissues') }}</span></label>
             <label class="form-check ms-4"><input class="form-check-input" type="checkbox" name="creation_followup_private" value="1" {{ settings.creation_followup_private == '1' ? 'checked' }}><span class="form-check-label">{{ __('Private followup', 'gitlabissues') }}</span></label>
+            <label class="form-check mt-2"><input class="form-check-input" type="checkbox" name="notify_requester" value="1" {{ settings.notify_requester == '1' ? 'checked' }}><span class="form-check-label">{{ __('When an issue is created, add a public followup (the technician can change this for each issue)', 'gitlabissues') }}</span></label>
+            <div class="ms-4 mb-2">
+                <textarea name="notify_requester_text" class="form-control" rows="2" aria-label="{{ __('Message to the requester', 'gitlabissues') }}" placeholder="{{ default_notice_creation }}">{{ settings.notify_requester_text }}</textarea>
+                <div class="form-text">{{ __('Message to the requester', 'gitlabissues') }} – {{ __('Plain text. Empty = default message.', 'gitlabissues') }}</div>
+            </div>
             <label class="form-check"><input class="form-check-input" type="checkbox" name="upload_attachments" value="1" {{ settings.upload_attachments == '1' ? 'checked' }}><span class="form-check-label">{{ __('Copy the ticket attachments and images to GitLab', 'gitlabissues') }}</span></label>
             <div class="mt-2" style="max-width: 16rem">
                 <label class="form-label">{{ __('Maximum attachment size (MB)', 'gitlabissues') }}</label>
@@ -60,49 +65,41 @@
     </div>
 
     <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">{{ __('Inform the requester', 'gitlabissues') }}</h3></div>
+        <div class="card-header"><h3 class="card-title">{{ __('When the issue is closed on GitLab', 'gitlabissues') }}</h3></div>
         <div class="card-body">
+            <h4 class="mb-2">{{ __('For technicians', 'gitlabissues') }}</h4>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="close_followup" value="1" {{ settings.close_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a followup with the GitLab details (who closed the issue, when, merge requests)', 'gitlabissues') }}</span></label>
+            <label class="form-check ms-4 mb-3"><input class="form-check-input" type="checkbox" name="close_followup_private" value="1" {{ settings.close_followup_private == '1' ? 'checked' }}><span class="form-check-label">{{ __('Private followup', 'gitlabissues') }}</span></label>
+
+            <h4 class="mb-2">{{ __('For the requester', 'gitlabissues') }}</h4>
             <p class="text-muted">{{ __('Requesters, who are often not technicians, never see the GitLab tab. These neutral public messages tell them that their request was forwarded and completed, without any GitLab detail (project, developer, link). GLPI notifications apply to public followups.', 'gitlabissues') }}</p>
-            <label class="form-check"><input class="form-check-input" type="checkbox" name="notify_requester" value="1" {{ settings.notify_requester == '1' ? 'checked' }}><span class="form-check-label">{{ __('When an issue is created, add a public followup (the technician can change this for each issue)', 'gitlabissues') }}</span></label>
-            <div class="mt-2 mb-3">
-                <label class="form-label">{{ __('Message to the requester', 'gitlabissues') }}</label>
-                <textarea name="notify_requester_text" class="form-control" rows="2" placeholder="{{ default_notice_creation }}">{{ settings.notify_requester_text }}</textarea>
-                <div class="form-text">{{ __('Plain text. Empty = default message.', 'gitlabissues') }}</div>
-            </div>
-            <label class="form-check"><input class="form-check-input" type="checkbox" name="notify_requester_close" value="1" {{ settings.notify_requester_close == '1' ? 'checked' }}><span class="form-check-label">{{ __('When the issue is closed, add a public followup', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="requester_close_mode" value="none" {{ close_mode == 'none' ? 'checked' }}><span class="form-check-label">{{ __('Nothing', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="requester_close_mode" value="followup" {{ close_mode == 'followup' ? 'checked' }}><span class="form-check-label">{{ __('A public followup with the message below', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="requester_close_mode" value="solve" {{ close_mode == 'solve' ? 'checked' }}><span class="form-check-label">{{ __('The ticket is solved, with the message below as the solution (notifications and automatic actions apply)', 'gitlabissues') }}</span></label>
             <div class="mt-2">
                 <label class="form-label">{{ __('Message to the requester', 'gitlabissues') }}</label>
                 <textarea name="notify_requester_close_text" class="form-control" rows="2" placeholder="{{ default_notice_close }}">{{ settings.notify_requester_close_text }}</textarea>
-                <div class="form-text">{{ __('Plain text. Empty = default message. If "Solve the ticket" is on, no separate followup is added: this message becomes the text of the solution when you give no solution text below.', 'gitlabissues') }}</div>
+                <div class="form-text">{{ __('Plain text. Empty = default message.', 'gitlabissues') }}</div>
             </div>
-        </div>
-    </div>
-
-    <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">{{ __('When the issue is closed on GitLab', 'gitlabissues') }}</h3></div>
-        <div class="card-body">
-            <label class="form-check"><input class="form-check-input" type="checkbox" name="close_followup" value="1" {{ settings.close_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a followup to the ticket', 'gitlabissues') }}</span></label>
-            <label class="form-check ms-4"><input class="form-check-input" type="checkbox" name="close_followup_private" value="1" {{ settings.close_followup_private == '1' ? 'checked' }}><span class="form-check-label">{{ __('Private followup', 'gitlabissues') }}</span></label>
-            <label class="form-check mt-2"><input class="form-check-input" type="checkbox" name="close_solve_ticket" value="1" {{ settings.close_solve_ticket == '1' ? 'checked' }}><span class="form-check-label">{{ __('Solve the ticket (adds a solution, so notifications and automatic actions apply)', 'gitlabissues') }}</span></label>
             <div class="mt-2">
-                <label class="form-label">{{ __('Solution type', 'gitlabissues') }}</label>
+                <label class="form-label">{{ __('Solution type (when the ticket is solved)', 'gitlabissues') }}</label>
                 <select name="solutiontypes_id" class="form-select">
                     <option value="0">—</option>
                     {% for id, name in solution_types %}<option value="{{ id }}" {{ settings.solutiontypes_id == id ? 'selected' }}>{{ name }}</option>{% endfor %}
                 </select>
             </div>
-            <div class="mt-2">
-                <label class="form-label">{{ __('Solution text', 'gitlabissues') }}</label>
-                <textarea name="solution_template" class="form-control" rows="3">{{ settings.solution_template }}</textarea>
-                <div class="form-text">{{ __('Optional. Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. Empty = standard message.', 'gitlabissues') }}</div>
-            </div>
-            <div class="mt-2">
-                <label class="form-label">{{ __('Author of the automatic followups and solutions', 'gitlabissues') }}</label>
-                <select name="actor_users_id" class="form-select">
-                    <option value="0">{{ __('The user who created the issue', 'gitlabissues') }}</option>
-                    {% for id, name in users %}<option value="{{ id }}" {{ settings.actor_users_id == id ? 'selected' }}>{{ name }}</option>{% endfor %}
-                </select>
-            </div>
+            <details class="mt-2" {{ settings.solution_template ? 'open' }}>
+                <summary class="text-muted">{{ __('Advanced: custom solution text', 'gitlabissues') }}</summary>
+                <textarea name="solution_template" class="form-control mt-2" rows="3">{{ settings.solution_template }}</textarea>
+                <div class="form-text">{{ __('Optional. Replaces the message above as the text of the solution (HTML allowed). Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. They show GitLab details to the requester.', 'gitlabissues') }}</div>
+            </details>
+
+            <h4 class="mt-4 mb-2">{{ __('Author', 'gitlabissues') }}</h4>
+            <label class="form-label">{{ __('Author of the automatic followups and solutions', 'gitlabissues') }}</label>
+            <select name="actor_users_id" class="form-select">
+                <option value="0">{{ __('The user who created the issue', 'gitlabissues') }}</option>
+                {% for id, name in users %}<option value="{{ id }}" {{ settings.actor_users_id == id ? 'selected' }}>{{ name }}</option>{% endfor %}
+            </select>
         </div>
     </div>
 

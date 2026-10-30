@@ -6,6 +6,10 @@ namespace GlpiPlugin\Gitlabissues;
  * Neutral public messages for the requester of the ticket, who is often not a technician and never
  * sees the GitLab tab: they say that the request was forwarded / completed, with no GitLab detail
  * (no project, no developer name, no link). The technical details stay in private followups.
+ *
+ * Language: like the rest of the plugin, the language of the interface (the technician's when he creates
+ * the issue, the instance's default language for the automatic action) if the plugin has a catalogue for
+ * it, otherwise English. The administrator can replace the texts in the configuration.
  */
 final class RequesterNotice
 {

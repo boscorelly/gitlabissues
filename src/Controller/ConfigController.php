@@ -33,6 +33,7 @@ final class ConfigController extends AbstractController
             'projects_url' => $this->url('/Projects'),
             'solution_types' => $this->solutionTypes(),
             'users'     => $this->users($settings['actor_users_id']),
+            'close_mode' => $settings['close_solve_ticket'] === '1' ? 'solve' : ($settings['notify_requester_close'] === '1' ? 'followup' : 'none'),
             'default_notice_creation' => RequesterNotice::defaultText(RequesterNotice::CREATION),
             'default_notice_close' => RequesterNotice::defaultText(RequesterNotice::CLOSURE),
             'profiles'  => $this->profiles(),
@@ -49,9 +50,14 @@ final class ConfigController extends AbstractController
         $input = $request->request->all();
 
         // Checkboxes are absent from the POST when unchecked.
-        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'creation_followup_private', 'notify_requester', 'notify_requester_close', 'close_followup', 'close_followup_private', 'close_solve_ticket'] as $flag) {
+        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'creation_followup_private', 'notify_requester', 'close_followup', 'close_followup_private'] as $flag) {
             $input[$flag] = !empty($input[$flag]) ? '1' : '0';
         }
+        // One choice for the requester at closure; stored in the two existing settings (nothing to migrate).
+        $mode = (string) ($input['requester_close_mode'] ?? 'none');
+        $mode = in_array($mode, ['none', 'followup', 'solve'], true) ? $mode : 'none';
+        $input['close_solve_ticket']     = $mode === 'solve' ? '1' : '0';
+        $input['notify_requester_close'] = $mode === 'followup' ? '1' : '0';
         foreach (['max_attachment_mb', 'solutiontypes_id', 'actor_users_id', 'default_project_id'] as $number) {
             $input[$number] = (string) max(0, (int) ($input[$number] ?? 0));
         }

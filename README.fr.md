@@ -54,12 +54,17 @@ Cas particuliers :
 | Échec pendant les actions sur le ticket | **Annulation complète** (transaction) : l'issue reste « ouverte » et tout est rejoué au passage suivant, sans doublon |
 
 ## Informer le demandeur (non-techniciens)
-Le demandeur ne voit jamais l'onglet « Issues GitLab » : par défaut, il ne sait rien de l'issue. Deux options (*Configuration > Plugins > Issues GitLab > Informer le demandeur*)
+Le demandeur ne voit jamais l'onglet « Issues GitLab » : par défaut, il ne sait rien de l'issue. Deux options (*Configuration > Plugins > Issues GitLab* : dans la section « Création d'issue » et dans la section « Quand l'issue est fermée sur GitLab »)
 ajoutent des **suivis publics neutres**, sans aucun détail GitLab (ni projet, ni lien, ni développeur, ni merge request) :
 - à la création d'une issue (le technicien peut décocher « Informer le demandeur » pour une issue donnée) : par défaut *« Votre demande a été prise en compte par l'équipe technique et transmise aux personnes en charge du développement. Vous serez informé(e) de la suite. »*
-- à la fermeture de l'issue : *« Le traitement technique lié à votre demande est terminé. »* Si « Résoudre le ticket » est activé, la solution porte ce texte à la place (pas de suivi en plus).
+- à la fermeture de l'issue, un seul choix : rien, un suivi public, ou **le ticket est résolu** avec ce message comme solution : *« Le traitement technique lié à votre demande est terminé. »*
 
 Les deux textes sont modifiables. Les notifications GLPI s'appliquent aux suivis publics et aux solutions. Les détails techniques (qui a fermé l'issue, quand, merge requests) restent dans les suivis **privés**.
+
+## Langues
+Anglais (`en_GB`, `en_US`) et français (`fr_FR`). Le plugin utilise **la langue de chaque utilisateur si une traduction existe, sinon l'anglais**
+(GLPI seul se rabattrait sur la langue par défaut de l'instance). Les messages neutres écrits dans le ticket pour le demandeur suivent la même règle (langue de l'interface de la personne qui les déclenche ; langue par défaut de l'instance pour l'action automatique).
+Pour ajouter une langue : copier `locales/gitlabissues.pot` en `locales/<xx_XX>.po`, le traduire, lancer `python3 tools/locales.py` depuis le dépôt git (nécessite `msgfmt`), vider le cache de GLPI. Contributions bienvenues.
 
 ## Droits
 Onglet **Issues GitLab** d'un profil (*Administration > Profils > (profil)*, dernier onglet de la page) ou tableau **Droits par profil** de la page de configuration du plugin : lecture, création d'issue, actualisation, déliaison.
