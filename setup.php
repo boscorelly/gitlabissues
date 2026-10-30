@@ -7,14 +7,14 @@
  * automatic action) whether the issue has been closed and run the configured
  * actions on the ticket.
  *
- * @license GPL-3.0-or-later
+ * @license AGPL-3.0-or-later
  */
 
 use Glpi\Plugin\Hooks;
 use GlpiPlugin\Gitlabissues\Link;
 use GlpiPlugin\Gitlabissues\Profile as PluginProfile;
 
-define('PLUGIN_GITLABISSUES_VERSION', '1.0.0');
+define('PLUGIN_GITLABISSUES_VERSION', '1.0.2');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_GITLABISSUES_MIN_GLPI', '11.0.0');
@@ -61,8 +61,8 @@ function plugin_version_gitlabissues(): array
         'name'         => 'GitLab Issues',
         'version'      => PLUGIN_GITLABISSUES_VERSION,
         'author'       => 'GitLab Issues contributors',
-        'license'      => 'GPL-3.0-or-later',
-        'homepage'     => '',
+        'license'      => 'AGPL-3.0-or-later',
+        'homepage'     => 'https://github.com/boscorelly/gitlabissues',
         'requirements' => [
             'glpi' => [
                 'min' => PLUGIN_GITLABISSUES_MIN_GLPI,

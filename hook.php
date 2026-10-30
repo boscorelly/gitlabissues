@@ -3,7 +3,7 @@
 /**
  * Install / uninstall hooks of the GitLab Issues plugin.
  *
- * @license GPL-3.0-or-later
+ * @license AGPL-3.0-or-later
  */
 
 use GlpiPlugin\Gitlabissues\Link;
@@ -26,7 +26,10 @@ function plugin_gitlabissues_install(): bool
 
     // ---- Table of links between tickets and GitLab issues -------------------
     $table = Link::getTable();
-    if (!$DB->tableExists($table)) {
+    // This function also runs on every plugin update (GLPI calls it again when the version
+    // changes): everything below must be idempotent and must never overwrite admin choices.
+    $first_install = !$DB->tableExists($table);
+    if ($first_install) {
         $migration->displayMessage("Installing $table");
         $DB->doQuery(
             "CREATE TABLE `$table` (
@@ -55,6 +58,10 @@ function plugin_gitlabissues_install(): bool
         );
     }
 
+    // Future schema changes go here, written as "if the column/table is missing, add it"
+    // (use $DB->fieldExists() / $migration->addField()): GLPI gives no "previous version" to the
+    // install function, so each step must detect by itself whether it is needed.
+
     // ---- Settings (the token is encrypted thanks to the secured_configs hook) ----
     // Declare the secured config key right now: hooks of the plugin are not
     // necessarily loaded when the installation runs from the CLI.
@@ -67,18 +74,30 @@ function plugin_gitlabissues_install(): bool
     }
 
     // ---- Rights --------------------------------------------------------------
-    ProfileRight::addProfileRights([Link::$rightname]);
-    // Profiles that can already update tickets get the plugin rights by default.
-    // Administrators can change this in Administration > Profiles > GitLab Issues.
-    foreach ($DB->request([
-        'SELECT' => ['profiles_id'],
-        'FROM'   => 'glpi_profilerights',
-        'WHERE'  => ['name' => 'ticket', 'rights' => ['&', UPDATE]],
-    ]) as $row) {
-        ProfileRight::updateProfileRights(
-            (int) $row['profiles_id'],
-            [Link::$rightname => READ | CREATE | UPDATE | DELETE]
-        );
+    // ProfileRight::addProfileRights() inserts blindly (it fails when rerun on an update):
+    // only create the rows that are missing.
+    $existing_profiles = array_column(
+        iterator_to_array($DB->request(['SELECT' => ['profiles_id'], 'FROM' => 'glpi_profilerights', 'WHERE' => ['name' => Link::$rightname]])),
+        'profiles_id'
+    );
+    foreach ($DB->request(['SELECT' => ['id'], 'FROM' => Profile::getTable()]) as $profile) {
+        if (!in_array($profile['id'], $existing_profiles)) {
+            $DB->insert('glpi_profilerights', ['profiles_id' => $profile['id'], 'name' => Link::$rightname]);
+        }
+    }
+    // First installation only: profiles that can already update tickets get the plugin rights by
+    // default. On an update the rights chosen by administrators in Administration > Profiles are kept.
+    if ($first_install) {
+        foreach ($DB->request([
+            'SELECT' => ['profiles_id'],
+            'FROM'   => 'glpi_profilerights',
+            'WHERE'  => ['name' => 'ticket', 'rights' => ['&', UPDATE]],
+        ]) as $row) {
+            ProfileRight::updateProfileRights(
+                (int) $row['profiles_id'],
+                [Link::$rightname => READ | CREATE | UPDATE | DELETE]
+            );
+        }
     }
 
     // ---- Automatic action: check the issues every 5 minutes -------------------

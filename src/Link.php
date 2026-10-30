@@ -121,6 +121,7 @@ class Link extends CommonDBTM
                 ? ['id' => $default_id, 'text' => Settings::get('default_project_path') ?: (string) $default_id]
                 : null,
             'default_labels' => Settings::get('default_labels'),
+            'default_followup' => self::defaultFollowupMode(),
             'base'         => ($CFG_GLPI['root_doc'] ?? '') . '/plugins/gitlabissues',
         ]);
     }
@@ -129,6 +130,8 @@ class Link extends CommonDBTM
 
     /**
      * Create the GitLab issue for a ticket and store the link.
+     *
+     * @param string|null $followup 'private', 'public' or 'none'; null = use the plugin settings
      *
      * @return array{link: Link, warnings: string[]}
      *
@@ -140,6 +143,7 @@ class Link extends CommonDBTM
         string $extra_labels = '',
         int $users_id = 0,
         bool $allow_duplicate = false,
+        ?string $followup = null,
     ): array {
         /** @var \DBmysql $DB */
         global $DB;
@@ -209,14 +213,28 @@ class Link extends CommonDBTM
             $DB->doQuery("SELECT RELEASE_LOCK('" . $DB->escape($lock) . "')");
         }
 
-        if (Settings::get('creation_followup') === '1') {
-            self::addCreationFollowup($ticket, $link, $users_id);
+        $mode = in_array($followup, ['private', 'public', 'none'], true) ? $followup : self::defaultFollowupMode();
+        if ($mode !== 'none') {
+            self::addCreationFollowup($ticket, $link, $users_id, $mode === 'private');
         }
 
         return ['link' => $link, 'warnings' => $payload['warnings']];
     }
 
-    private static function addCreationFollowup(Ticket $ticket, self $link, int $users_id): void
+    /**
+     * Followup mode used when the user does not choose one: 'private', 'public' or 'none'.
+     */
+    public static function defaultFollowupMode(): string
+    {
+        $settings = Settings::all();
+        if ($settings['creation_followup'] !== '1') {
+            return 'none';
+        }
+
+        return $settings['creation_followup_private'] === '1' ? 'private' : 'public';
+    }
+
+    private static function addCreationFollowup(Ticket $ticket, self $link, int $users_id, bool $private): void
     {
         $url   = htmlspecialchars((string) $link->fields['issue_url'], ENT_QUOTES, 'UTF-8');
         $label = htmlspecialchars($link->fields['project_path'] . '#' . $link->fields['issue_iid'], ENT_QUOTES, 'UTF-8');
@@ -226,7 +244,7 @@ class Link extends CommonDBTM
                 'itemtype'   => 'Ticket',
                 'items_id'   => $ticket->getID(),
                 'content'    => '<p>' . sprintf(__('GitLab issue created: %s', 'gitlabissues'), '<a href="' . $url . '">' . $label . '</a>') . '</p>',
-                'is_private' => 1,
+                'is_private' => $private ? 1 : 0,
                 'users_id'   => $users_id,
             ]);
         } catch (\Throwable $e) {

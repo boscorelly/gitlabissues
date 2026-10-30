@@ -64,6 +64,7 @@ s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemt
 check('ticket GitLab tab renders', s == 200 and ('GitLab issues' in page or 'Issues GitLab' in page) and ('Create GitLab issue' in page or 'Créer une issue GitLab' in page), page[:300])
 check('tab form points to plugin route', f'/plugins/gitlabissues/Ticket/{ticket_id}/Issue' in page)
 check('tab lists existing issue', 'group/app#1' in page)
+check('tab offers the followup choice', 'name="followup"' in page and 'value="public"' in page and 'value="none"' in page)
 
 s, page, _ = a.req('/front/ticket.form.php?id=%d' % ticket_id)
 check('ticket page lists the tab', s == 200 and ('GitLab issue' in page or 'Issue GitLab' in page or 'Issues GitLab' in page), str(s))
@@ -74,7 +75,7 @@ check('token never sent back to the browser', 'test-token' not in page)
 ctok = a.token(page)
 
 s, page, h = a.req('/plugins/gitlabissues/Config', {'_glpi_csrf_token': ctok, 'gitlab_url': 'http://127.0.0.1:8099', 'gitlab_token': '', '_test': '1',
-                    'title_template': '[GLPI #{id}] {title}', 'default_labels': 'glpi', 'max_attachment_mb': '10', 'creation_followup': '1', 'close_followup': '1',
+                    'title_template': '[GLPI #{id}] {title}', 'default_labels': 'glpi', 'max_attachment_mb': '10', 'creation_followup': '1', 'creation_followup_private': '1', 'close_followup': '1',
                     'default_project_id': '1', 'default_project_path': 'group/app', 'include_people': '1', 'upload_attachments': '1'})
 check('config save+test redirects', s in (302, 303), str(s) + page[:300])
 s, page, _ = a.req('/plugins/gitlabissues/Config')
@@ -89,12 +90,14 @@ check('project search endpoint', s == 200 and json.loads(body)['results'][0]['te
 # create via the real form flow
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
 ftok = a.token(page)
-s, body, h = a.req(f'/plugins/gitlabissues/Ticket/{ticket_id}/Issue', {'_glpi_csrf_token': ftok, 'project_id': '3', 'labels': 'web'})
+s, body, h = a.req(f'/plugins/gitlabissues/Ticket/{ticket_id}/Issue', {'_glpi_csrf_token': ftok, 'project_id': '3', 'labels': 'web', 'followup': 'public'})
 check('create issue via form -> redirect to ticket tab', s in (302, 303) and 'forcetab' in h.get('Location', '') , str(s) + h.get('Location', ''))
 issues = mock('/_mock/state')['issues']
-check('issue exists in GitLab project 3 with web label', '3/1' in issues and 'web' in issues['3/1']['labels'], str(list(issues)))
+web_key = next((k for k, v in issues.items() if k.startswith('3/') and 'web' in v['labels']), None)
+check('issue exists in GitLab project 3 with web label', web_key is not None, str(list(issues)))
+web_iid = web_key.split('/')[1] if web_key else '0'
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
-check('new issue now listed', 'other/tools#1' in page)
+check('new issue now listed', f'other/tools#{web_iid}' in page)
 ids = re.findall(r'/plugins/gitlabissues/Link/(\d+)/Refresh', page)
 check('refresh button present', bool(ids))
 class _M:  # the newest link (list is ordered by id): the one just created
@@ -107,7 +110,7 @@ s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemt
 s, body, h = a.req(f'/plugins/gitlabissues/Link/{m.group(1)}/Unlink', {'_glpi_csrf_token': form_token(page, f'Link/{m.group(1)}/Unlink')})
 check('unlink works', s in (302, 303))
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
-check('unlinked issue no longer listed', 'other/tools#1' not in page)
+check('unlinked issue no longer listed', f'other/tools#{web_iid}' not in page and f'/Link/' in page)
 
 s, page, _ = a.req('/front/profile.form.php?id=4&forcetab=' + TAB.replace('Link', 'Profile'))
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/profile.form.php&_itemtype=Profile&_glpi_tab={urllib.parse.quote(chr(92).join(["GlpiPlugin","Gitlabissues","Profile"]) + "$1", safe="")}&id=4', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})

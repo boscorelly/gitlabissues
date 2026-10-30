@@ -108,6 +108,26 @@ ok('other project allowed', (int) $r2['link']->fields['issue_iid'] === 1 && $r2[
 try { Link::createFromTicket($t1, 99, '', 2); ok('unknown project', false); }
 catch (GitlabException $e) { ok('unknown project -> NOT_FOUND, no issue/link created', $e->getKind() === GitlabException::NOT_FOUND && countElementsInTable(Link::getTable(), ['tickets_id' => $t1->getID()]) === 2); }
 
+echo "== Creation followup: private / public / none\n";
+$t8 = newTicket('Choix du suivi', '<p>x</p>');
+Link::createFromTicket($t8, 1, '', 2, true, 'public');
+$f = followups($t8->getID());
+ok('explicit "public": public followup', count($f) === 1 && (int) $f[0]['is_private'] === 0);
+Link::createFromTicket($t8, 2, '', 2, true, 'none');
+ok('explicit "none": no followup', count(followups($t8->getID())) === 1);
+Link::createFromTicket($t8, 3, '', 2, true, 'private');
+$f = followups($t8->getID());
+ok('explicit "private": private followup', count($f) === 2 && (int) $f[1]['is_private'] === 1);
+Settings::save(['creation_followup_private' => '0']);
+ok('default mode follows the setting (public)', Link::defaultFollowupMode() === 'public');
+$t9 = newTicket('Suivi par defaut public', '<p>x</p>');
+Link::createFromTicket($t9, 1, '', 2);
+ok('no choice given: setting used (public)', (int) followups($t9->getID())[0]['is_private'] === 0);
+Settings::save(['creation_followup_private' => '1', 'creation_followup' => '0']);
+ok('followup disabled in settings -> none', Link::defaultFollowupMode() === 'none');
+Settings::save(['creation_followup' => '1']);
+ok('default back to private', Link::defaultFollowupMode() === 'private');
+
 echo "== Cron: nothing to do while issues are open\n";
 runCron();
 $row = linkOf($link1->getID());

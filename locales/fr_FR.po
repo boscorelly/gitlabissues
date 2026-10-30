@@ -271,8 +271,8 @@ msgstr "Créer des issues confidentielles"
 msgid "Mention requesters and assignees in the issue"
 msgstr "Mentionner les demandeurs et les attributaires dans l'issue"
 
-msgid "Add a private followup to the ticket when the issue is created"
-msgstr "Ajouter un suivi privé au ticket à la création de l'issue"
+msgid "Add a followup to the ticket when the issue is created"
+msgstr "Ajouter un suivi au ticket à la création de l'issue"
 
 msgid "Copy the ticket attachments and images to GitLab"
 msgstr "Copier les pièces jointes et images du ticket vers GitLab"
@@ -306,3 +306,15 @@ msgstr "Auteur des suivis et solutions automatiques"
 
 msgid "The user who created the issue"
 msgstr "L'utilisateur qui a créé l'issue"
+
+msgid "Followup on the ticket"
+msgstr "Suivi sur le ticket"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Public"
+msgstr "Public"
+
+msgid "None"
+msgstr "Aucun"

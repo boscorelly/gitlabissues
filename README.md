@@ -1,74 +1,47 @@
-# GitLab Issues – plugin GLPI 11
+# GitLab Issues – GLPI 11 plugin
 
-Crée une issue GitLab depuis un ticket GLPI, puis **vérifie toutes les 5 minutes** (action automatique GLPI)
-si l'issue a été fermée. À la fermeture, le plugin agit sur le ticket **via les objets GLPI** (suivi, solution) :
-historique, règles métier, notifications et autres actions automatiques (clôture automatique des tickets
-résolus, enquêtes de satisfaction…) se déclenchent comme pour une action manuelle.
+[Français : README.fr.md](README.fr.md)
 
-Compatible **GLPI 11.0.x** (testé sur 11.0.11, PHP 8.3, MariaDB 10.11). Licence GPL-3.0-or-later.
+Create a GitLab issue from a GLPI ticket, then **check every 5 minutes** (GLPI automatic action) whether the issue was closed.
+When it is, the plugin acts on the ticket **through GLPI's own objects** (followup, solution), so history, business rules,
+notifications and other automatic actions (auto-close of solved tickets, satisfaction surveys…) run as for a manual action.
 
-## Installation
+Tested on **GLPI 11.0.11** (PHP 8.3, MariaDB 10.11) against a mock of the GitLab API v4. License: AGPL-3.0-or-later.
 
-1. Copier le dossier `gitlabissues` dans `plugins/` (ou `marketplace/`) de GLPI.
-2. *Configuration > Plugins* : installer puis activer. L'installation :
-   - crée la table `glpi_plugin_gitlabissues_links` ;
-   - enregistre l'action automatique **CheckIssues** (toutes les 5 min) ;
-   - donne le droit « GitLab Issues » aux profils qui peuvent déjà modifier les tickets.
-3. **Cron système** : l'action automatique est en mode « CLI ». Vérifiez que le cron de GLPI tourne
-   (`* * * * * php /chemin/glpi/front/cron.php`). Sans cron système, passez l'action en mode « GLPI »
-   dans *Configuration > Actions automatiques > CheckIssues* (moins fiable).
-4. *Configuration > Plugins > GitLab Issues* : URL de GitLab, jeton, projet par défaut, comportement
-   à la fermeture. Le bouton « Enregistrer et tester la connexion » vérifie l'URL, le jeton et ses périmètres.
+## Install
+1. Put the `gitlabissues` folder in GLPI's `plugins/` directory, then install and activate it in *Setup > Plugins*.
+2. Make sure GLPI's system cron runs (`* * * * * php /path/to/glpi/front/cron.php`); the automatic action `CheckIssues` is in CLI mode.
+3. *Setup > Plugins > GitLab Issues*: GitLab URL and access token (scope **`api`**, role **Reporter** or higher; stored encrypted),
+   default project, behaviour when an issue is closed. "Save and test the connection" checks URL, token and scopes.
 
-### Jeton GitLab
-Un jeton de **projet ou de groupe** (ou personnel) avec le périmètre **`api`** et le rôle **Reporter** ou plus.
-Il est stocké **chiffré** (clé `glpicrypt.key` de GLPI) et n'est jamais renvoyé au navigateur.
-Si vous changez la clé de GLPI, ressaisissez le jeton.
+## Use
+- Ticket tab **GitLab issues**: pick a project, optional extra labels, choose the followup (private / public / none), create the issue.
+- The issue contains the ticket details, the description converted to Markdown, and the inline images and attachments uploaded to the project.
+- When the issue is closed: followup (who closed it, when, closing merge requests) and/or ticket solution with a customisable text.
 
-## Utilisation
-
-- Onglet **Issues GitLab** d'un ticket : choisir le projet (recherche), éventuellement des labels
-  supplémentaires, **Créer une issue GitLab**.
-- L'issue contient : titre (`[GLPI #12] …`, modifiable), lien vers le ticket, tableau d'informations
-  (statut, priorité, urgence, impact, catégorie, entité, demandeurs/attributaires), description convertie
-  en Markdown, **images en ligne et pièces jointes envoyées dans le projet GitLab**.
-- Un suivi privé « issue créée » est ajouté au ticket (désactivable).
-- Un ticket peut avoir plusieurs issues (projets différents). Un doublon dans le même projet est refusé
-  sauf case cochée.
-
-### À la fermeture de l'issue
-Configurable : suivi (public ou privé) avec la personne qui a fermé, la date et les merge requests de clôture ;
-et/ou **résolution du ticket** (solution avec type et texte personnalisables : `{issue}`, `{issue_url}`,
-`{closed_by}`, `{closed_at}`, `{ticket_id}`). L'auteur est un utilisateur choisi, ou celui qui a créé l'issue.
-
-Cas particuliers :
-| Situation | Comportement |
+| Situation | Behaviour |
 |---|---|
-| Issue **déplacée** vers un autre projet | Pas de résolution du ticket ; suivi privé d'information ; l'issue n'est plus suivie |
-| Issue **introuvable** (supprimée, accès retiré) | Abandon après 3 vérifications consécutives, suivi privé d'information |
-| Ticket déjà **clos** / en corbeille | Le lien passe à « fermée », le ticket n'est pas touché |
-| GitLab **injoignable**, jeton refusé, limite de requêtes | L'exécution s'arrête proprement, l'erreur est affichée dans l'onglet, nouvelle tentative au passage suivant |
-| Échec pendant les actions sur le ticket | **Annulation complète** (transaction) : l'issue reste « ouverte » et tout est rejoué au passage suivant, sans doublon |
+| Issue moved to another project | Ticket not solved; private informational followup; no longer followed |
+| Issue not found (deleted, access removed) | Given up after 3 consecutive checks; private informational followup |
+| Ticket already closed / in trash | Link marked closed, ticket untouched |
+| GitLab unreachable, token refused, rate limit | Run stops cleanly, error shown in the tab, retried at the next run |
+| Failure while acting on the ticket | Everything rolled back; issue stays "open" and is retried, no duplicates |
 
-## Droits
-*Administration > Profils > (profil) > onglet Issues GitLab* : lecture, création d'issue, actualisation, déliaison.
-La page de configuration nécessite le droit GLPI *Configuration > Mettre à jour*. Les droits sont vérifiés **côté serveur**
-à chaque action ; les formulaires sont protégés par le CSRF de GLPI.
+## Rights
+*Administration > Profiles > (profile) > GitLab issues*: read, create, refresh, unlink. The configuration page requires GLPI's *Setup > Update* right.
+Rights are checked server-side on every action; forms use GLPI's CSRF protection.
 
-## Limites connues
-- Seul le sens ticket → issue est créé. Les commentaires ne sont pas synchronisés.
-- Une issue **rouverte après sa fermeture** n'est plus suivie (le ticket a déjà été traité).
-- Les pièces jointes des suivis du ticket ne sont pas copiées (seulement celles du ticket et les images de sa description).
-- La conversion HTML → Markdown couvre ce que produit l'éditeur GLPI (titres, listes, tableaux, liens, images, code, citations).
-- Le plugin interroge GitLab (pas de webhook) : le délai de détection est de ~5 minutes.
+## Update
+Replace the folder, clear GLPI's cache (`php bin/console cache:clear`), then in *Setup > Plugins* click *Update* and *Activate*
+(or `php bin/console plugin:install gitlabissues --username=<admin>` then `plugin:activate gitlabissues`).
+Settings, token, existing links, the automatic action and per-profile rights are preserved.
 
-## Tests (dossier `tests/`)
-- `html_to_markdown_test.php` : tests unitaires de la conversion (sans GLPI).
-- `mock_gitlab.py` : faux serveur GitLab (port 8099).
-- `integration.php` : bout en bout sur un vrai GLPI (CLI) : création d'issue, cron réel (`CronTask::launch`), tous les cas ci-dessus.
-- `http_test.py` : application web réelle (connexion, onglet, configuration, création, droits, CSRF).
-- `run_all.sh` : enchaîne le tout.
+## Known limits
+- Ticket → issue only; comments are not synchronised. An issue reopened after being closed is no longer followed.
+- Attachments of followups are not copied (only the ticket's own and the images of its description).
+- Detection delay is about 5 minutes (polling, no webhook).
 
-Dernier résultat : 20 tests unitaires, 46 d'intégration, 28 HTTP — tous réussis.
-**Non testé** : un vrai serveur GitLab (seulement le mock de l'API v4), et le JavaScript des listes de recherche
-(select2) dans un vrai navigateur.
+## Tests (`tests/`)
+`html_to_markdown_test.php` (unit), `mock_gitlab.py` (GitLab API mock), `integration.php` (real GLPI, CLI, real cron),
+`http_test.py` (real web app: login, tab, configuration, creation, rights, CSRF), `upgrade_test.sh`, `run_all.sh`.
+Not tested: a real GitLab server, and the project search widget (select2) in a real browser.

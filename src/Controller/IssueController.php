@@ -31,7 +31,8 @@ final class IssueController extends AbstractController
                 (int) $request->request->get('project_id', 0),
                 (string) $request->request->get('labels', ''),
                 (int) Session::getLoginUserID(),
-                $request->request->getBoolean('allow_duplicate')
+                $request->request->getBoolean('allow_duplicate'),
+                (string) $request->request->get('followup', '')
             );
             $url = htmlspecialchars((string) $res['link']->fields['issue_url'], ENT_QUOTES, 'UTF-8');
             Session::addMessageAfterRedirect(

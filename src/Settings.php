@@ -27,6 +27,7 @@ final class Settings
         'upload_attachments'     => '1',
         'max_attachment_mb'      => '10',
         'creation_followup'      => '1',
+        'creation_followup_private' => '1',
         // When the issue is closed
         'close_followup'         => '1',
         'close_followup_private' => '1',

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <name>GitLab Issues</name>
+    <key>gitlabissues</key>
+    <state>stable</state>
+    <description>
+        <short>
+            <en>Create GitLab issues from GLPI tickets and automatically act on the ticket when the issue is closed.</en>
+            <fr>Créer des issues GitLab depuis les tickets GLPI et agir automatiquement sur le ticket quand l'issue est fermée.</fr>
+        </short>
+        <long>
+            <en>
+Create a GitLab issue from a ticket in one click (title, description converted to Markdown, ticket details, inline images and attachments copied to GitLab). A GLPI automatic action checks every 5 minutes whether linked issues are closed and then adds a followup and/or solves the ticket, through GLPI's own objects so notifications, business rules and other automatic actions apply.
+
+* Project search, default project, labels, confidential issues
+* Private or public followup, chosen at creation
+* Followup and/or solution when the issue is closed (customisable text, author, solution type)
+* Safe handling of moved, deleted or unreachable issues; failed actions are rolled back and retried
+* Access token stored encrypted; rights per profile, checked server-side
+* English and French
+            </en>
+            <fr>
+Créez une issue GitLab depuis un ticket en un clic (titre, description convertie en Markdown, informations du ticket, images et pièces jointes copiées dans GitLab). Une action automatique GLPI vérifie toutes les 5 minutes si les issues liées sont fermées, puis ajoute un suivi et/ou résout le ticket via les objets GLPI : notifications, règles métier et autres actions automatiques s'appliquent.
+
+* Recherche de projet, projet par défaut, labels, issues confidentielles
+* Suivi privé ou public, au choix à la création
+* Suivi et/ou solution à la fermeture de l'issue (texte, auteur et type de solution personnalisables)
+* Gestion sûre des issues déplacées, supprimées ou inaccessibles ; les actions en échec sont annulées puis rejouées
+* Jeton d'accès chiffré ; droits par profil, vérifiés côté serveur
+* Anglais et français
+            </fr>
+        </long>
+    </description>
+    <homepage>https://github.com/boscorelly/gitlabissues</homepage>
+    <download>https://github.com/boscorelly/gitlabissues/releases</download>
+    <issues>https://github.com/boscorelly/gitlabissues/issues</issues>
+    <readme>https://github.com/boscorelly/gitlabissues/blob/main/README.md</readme>
+    <authors>
+        <author>GitLab Issues contributors</author>
+    </authors>
+    <versions>
+        <version>
+            <num>1.0.2</num>
+            <compatibility>~11.0.0</compatibility>
+            <download_url>https://github.com/boscorelly/gitlabissues/releases/download/1.0.2/glpi-gitlabissues-1.0.2.tar.bz2</download_url>
+        </version>
+    </versions>
+    <langs>
+        <lang>en_GB</lang>
+        <lang>fr_FR</lang>
+    </langs>
+    <license>AGPL v3+</license>
+    <tags>
+        <en>
+            <tag>gitlab</tag>
+            <tag>issues</tag>
+            <tag>tickets</tag>
+            <tag>integration</tag>
+        </en>
+        <fr>
+            <tag>gitlab</tag>
+            <tag>issues</tag>
+            <tag>tickets</tag>
+            <tag>intégration</tag>
+        </fr>
+    </tags>
+</root>

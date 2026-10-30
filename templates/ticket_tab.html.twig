@@ -70,7 +70,7 @@
         <form method="post" action="{{ base }}/Ticket/{{ ticket_id }}/Issue" class="card-footer">
             <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
             <div class="row g-2 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="form-label" for="gli_project_{{ rand }}">{{ __('GitLab project', 'gitlabissues') }}</label>
                     <select id="gli_project_{{ rand }}" name="project_id" class="form-select" required style="width:100%">
                         {% if default_project %}
@@ -78,7 +78,15 @@
                         {% endif %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2">
+                    <label class="form-label" for="gli_followup_{{ rand }}">{{ __('Followup on the ticket', 'gitlabissues') }}</label>
+                    <select id="gli_followup_{{ rand }}" name="followup" class="form-select">
+                        <option value="private" {{ default_followup == 'private' ? 'selected' }}>{{ __('Private', 'gitlabissues') }}</option>
+                        <option value="public" {{ default_followup == 'public' ? 'selected' }}>{{ __('Public', 'gitlabissues') }}</option>
+                        <option value="none" {{ default_followup == 'none' ? 'selected' }}>{{ __('None', 'gitlabissues') }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label" for="gli_labels_{{ rand }}">{{ __('Additional labels', 'gitlabissues') }}</label>
                     <input id="gli_labels_{{ rand }}" type="text" name="labels" class="form-control" placeholder="{{ default_labels }}">
                 </div>

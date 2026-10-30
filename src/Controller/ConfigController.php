@@ -40,7 +40,7 @@ final class ConfigController extends AbstractController
         $input = $request->request->all();
 
         // Checkboxes are absent from the POST when unchecked.
-        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'close_followup', 'close_followup_private', 'close_solve_ticket'] as $flag) {
+        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'creation_followup_private', 'close_followup', 'close_followup_private', 'close_solve_ticket'] as $flag) {
             $input[$flag] = !empty($input[$flag]) ? '1' : '0';
         }
         foreach (['max_attachment_mb', 'solutiontypes_id', 'actor_users_id', 'default_project_id'] as $number) {
