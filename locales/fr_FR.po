@@ -1,0 +1,308 @@
+# French translation of the GitLab Issues plugin
+msgid ""
+msgstr ""
+"Project-Id-Version: gitlabissues 1.0.0\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Check the GitLab issues linked to tickets"
+msgstr "Vérifier les issues GitLab liées aux tickets"
+
+msgid "Maximum number of issues checked per run"
+msgstr "Nombre maximum d'issues vérifiées par exécution"
+
+msgid "The GitLab issue %s can no longer be found (deleted, or access removed). It is not followed anymore."
+msgstr "L'issue GitLab %s est introuvable (supprimée ou accès retiré). Elle n'est plus suivie."
+
+msgid "The GitLab issue %s has been closed"
+msgstr "L'issue GitLab %s a été fermée"
+
+msgid "by %s"
+msgstr "par %s"
+
+msgid "on %s"
+msgstr "le %s"
+
+msgid "Closing merge request(s):"
+msgstr "Merge request(s) de clôture :"
+
+msgid "The GitLab issue %s was moved to another project. It is not followed anymore: the ticket is left unchanged."
+msgstr "L'issue GitLab %s a été déplacée vers un autre projet. Elle n'est plus suivie : le ticket reste inchangé."
+
+msgid "GitLab URL or token is not configured."
+msgstr "L'URL ou le jeton GitLab n'est pas configuré."
+
+msgid "Cannot reach GitLab: %s"
+msgstr "Impossible de joindre GitLab : %s"
+
+msgid "Unexpected (non-JSON) answer from GitLab. Is the URL correct?"
+msgstr "Réponse inattendue (non JSON) de GitLab. L'URL est-elle correcte ?"
+
+msgid "GitLab refused access (HTTP %d)%s"
+msgstr "GitLab a refusé l'accès (HTTP %d)%s"
+
+msgid "Not found on GitLab (HTTP 404)%s"
+msgstr "Introuvable sur GitLab (HTTP 404)%s"
+
+msgid "GitLab rate limit reached (HTTP 429)"
+msgstr "Limite de requêtes GitLab atteinte (HTTP 429)"
+
+msgid "GitLab server error (HTTP %d)"
+msgstr "Erreur du serveur GitLab (HTTP %d)"
+
+msgid "GitLab rejected the request (HTTP %d)%s"
+msgstr "GitLab a rejeté la requête (HTTP %d)%s"
+
+msgid "GitLab did not return the created issue."
+msgstr "GitLab n'a pas renvoyé l'issue créée."
+
+msgid "Cannot read file %s"
+msgstr "Impossible de lire le fichier %s"
+
+msgid "GitLab did not accept file %s"
+msgstr "GitLab n'a pas accepté le fichier %s"
+
+msgid "Create an issue"
+msgstr "Créer une issue"
+
+msgid "Refresh the status"
+msgstr "Actualiser le statut"
+
+msgid "Unlink"
+msgstr "Délier"
+
+msgid "Open"
+msgstr "Ouverte"
+
+msgid "Closed"
+msgstr "Fermée"
+
+msgid "Not found on GitLab"
+msgstr "Introuvable sur GitLab"
+
+msgid "Moved to another project"
+msgstr "Déplacée vers un autre projet"
+
+msgid "Select a GitLab project."
+msgstr "Sélectionnez un projet GitLab."
+
+msgid "Another issue creation is in progress for this ticket, try again in a moment."
+msgstr "Une création d'issue est déjà en cours pour ce ticket, réessayez dans un instant."
+
+msgid "This ticket already has an open issue in this project."
+msgstr "Ce ticket a déjà une issue ouverte dans ce projet."
+
+msgid "The issue was created on GitLab (%s) but could not be linked to the ticket."
+msgstr "L'issue a été créée sur GitLab (%s) mais n'a pas pu être liée au ticket."
+
+msgid "GitLab issue created: %s"
+msgstr "Issue GitLab créée : %s"
+
+msgid "GitLab issue"
+msgid_plural "GitLab issues"
+msgstr[0] "Issue GitLab"
+msgstr[1] "Issues GitLab"
+
+msgid "(no description)"
+msgstr "(aucune description)"
+
+msgid "Attachments"
+msgstr "Pièces jointes"
+
+msgid "(description truncated)"
+msgstr "(description tronquée)"
+
+msgid "The ticket description was too long and has been truncated."
+msgstr "La description du ticket était trop longue et a été tronquée."
+
+msgid "Created from GLPI ticket %1$s by %2$s on %3$s"
+msgstr "Créée depuis le ticket GLPI %1$s par %2$s le %3$s"
+
+msgid "Created from GLPI ticket %1$s on %2$s"
+msgstr "Créée depuis le ticket GLPI %1$s le %2$s"
+
+msgid "Ticket"
+msgstr "Ticket"
+
+msgid "Opened on"
+msgstr "Ouvert le"
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "Priority"
+msgstr "Priorité"
+
+msgid "Urgency"
+msgstr "Urgence"
+
+msgid "Impact"
+msgstr "Impact"
+
+msgid "Category"
+msgstr "Catégorie"
+
+msgid "Entity"
+msgstr "Entité"
+
+msgid "Requester"
+msgstr "Demandeur"
+
+msgid "Assigned to"
+msgstr "Attribué à"
+
+msgid "Attachment not copied (limit of %d files): %s"
+msgstr "Pièce jointe non copiée (limite de %d fichiers) : %s"
+
+msgid "Attachment not found on disk: %s"
+msgstr "Pièce jointe introuvable sur le disque : %s"
+
+msgid "Attachment not copied (larger than %d MB): %s"
+msgstr "Pièce jointe non copiée (plus de %d Mo) : %s"
+
+msgid "Attachment not copied (%1$s): %2$s"
+msgstr "Pièce jointe non copiée (%1$s) : %2$s"
+
+msgid "Status: %s"
+msgstr "Statut : %s"
+
+msgid "The issue is no longer followed. It was not changed on GitLab."
+msgstr "L'issue n'est plus suivie. Elle n'a pas été modifiée sur GitLab."
+
+msgid "Rights updated."
+msgstr "Droits mis à jour."
+
+msgid "The GitLab URL must start with http:// or https://"
+msgstr "L'URL GitLab doit commencer par http:// ou https://"
+
+msgid "Settings saved."
+msgstr "Configuration enregistrée."
+
+msgid "Connection successful: GitLab %1$s, authenticated as %2$s."
+msgstr "Connexion réussie : GitLab %1$s, authentifié en tant que %2$s."
+
+msgid "This token has no \"api\" scope: it can read issues but not create them."
+msgstr "Ce jeton n'a pas le périmètre « api » : il peut lire les issues mais pas en créer."
+
+msgid "GitLab issues"
+msgstr "Issues GitLab"
+
+msgid "No GitLab issue is linked to this ticket."
+msgstr "Aucune issue GitLab n'est liée à ce ticket."
+
+msgid "Issue"
+msgstr "Issue"
+
+msgid "Last check"
+msgstr "Dernière vérification"
+
+msgid "Refresh"
+msgstr "Actualiser"
+
+msgid "Stop following this issue? It will not be changed on GitLab."
+msgstr "Ne plus suivre cette issue ? Elle ne sera pas modifiée sur GitLab."
+
+msgid "The plugin is not configured yet."
+msgstr "Le plugin n'est pas encore configuré."
+
+msgid "Configure it"
+msgstr "Le configurer"
+
+msgid "GitLab project"
+msgstr "Projet GitLab"
+
+msgid "Additional labels"
+msgstr "Labels supplémentaires"
+
+msgid "Create GitLab issue"
+msgstr "Créer une issue GitLab"
+
+msgid "Create another issue even if one is already open in this project"
+msgstr "Créer une autre issue même si une est déjà ouverte dans ce projet"
+
+msgid "Search a project…"
+msgstr "Rechercher un projet…"
+
+msgid "GitLab Issues"
+msgstr "Issues GitLab"
+
+msgid "GitLab connection"
+msgstr "Connexion à GitLab"
+
+msgid "GitLab URL"
+msgstr "URL de GitLab"
+
+msgid "Access token"
+msgstr "Jeton d'accès"
+
+msgid "(unchanged)"
+msgstr "(inchangé)"
+
+msgid "A project or group access token with the \"api\" scope and the Reporter role (or more) is enough. It is stored encrypted."
+msgstr "Un jeton d'accès de projet ou de groupe avec le périmètre « api » et le rôle Reporter (ou supérieur) suffit. Il est stocké chiffré."
+
+msgid "Save and test the connection"
+msgstr "Enregistrer et tester la connexion"
+
+msgid "Issue creation"
+msgstr "Création d'issue"
+
+msgid "Default project"
+msgstr "Projet par défaut"
+
+msgid "Issue title"
+msgstr "Titre de l'issue"
+
+msgid "Placeholders: {id} (ticket number) and {title}."
+msgstr "Variables : {id} (numéro du ticket) et {title}."
+
+msgid "Default labels"
+msgstr "Labels par défaut"
+
+msgid "Comma separated."
+msgstr "Séparés par des virgules."
+
+msgid "Create confidential issues"
+msgstr "Créer des issues confidentielles"
+
+msgid "Mention requesters and assignees in the issue"
+msgstr "Mentionner les demandeurs et les attributaires dans l'issue"
+
+msgid "Add a private followup to the ticket when the issue is created"
+msgstr "Ajouter un suivi privé au ticket à la création de l'issue"
+
+msgid "Copy the ticket attachments and images to GitLab"
+msgstr "Copier les pièces jointes et images du ticket vers GitLab"
+
+msgid "Maximum attachment size (MB)"
+msgstr "Taille maximale des pièces jointes (Mo)"
+
+msgid "When the issue is closed on GitLab"
+msgstr "Quand l'issue est fermée sur GitLab"
+
+msgid "Add a followup to the ticket"
+msgstr "Ajouter un suivi au ticket"
+
+msgid "Private followup"
+msgstr "Suivi privé"
+
+msgid "Solve the ticket (adds a solution, so notifications and automatic actions apply)"
+msgstr "Résoudre le ticket (ajoute une solution : notifications et actions automatiques s'appliquent)"
+
+msgid "Solution type"
+msgstr "Type de solution"
+
+msgid "Solution text"
+msgstr "Texte de la solution"
+
+msgid "Optional. Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. Empty = standard message."
+msgstr "Facultatif. Variables : {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. Vide = message standard."
+
+msgid "Author of the automatic followups and solutions"
+msgstr "Auteur des suivis et solutions automatiques"
+
+msgid "The user who created the issue"
+msgstr "L'utilisateur qui a créé l'issue"

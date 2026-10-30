@@ -1,0 +1,112 @@
+<div class="card m-3">
+    <div class="card-header">
+        <h3 class="card-title"><i class="ti ti-brand-gitlab me-2"></i>{{ __('GitLab issues', 'gitlabissues') }}</h3>
+    </div>
+
+    {% if links is empty %}
+        <div class="card-body text-muted">{{ __('No GitLab issue is linked to this ticket.', 'gitlabissues') }}</div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table">
+                <thead>
+                    <tr>
+                        <th>{{ __('Issue', 'gitlabissues') }}</th>
+                        <th>{{ __('Status', 'gitlabissues') }}</th>
+                        <th>{{ __('Last check', 'gitlabissues') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for link in links %}
+                    <tr>
+                        <td>
+                            {% if link.issue_url starts with 'http://' or link.issue_url starts with 'https://' %}
+                                <a href="{{ link.issue_url }}" target="_blank" rel="noopener">{{ link.project_path }}#{{ link.issue_iid }}</a>
+                            {% else %}
+                                {{ link.project_path }}#{{ link.issue_iid }}
+                            {% endif %}
+                            <div class="text-muted small">{{ link.issue_title }}</div>
+                        </td>
+                        <td>
+                            {% set badge = {'opened': 'bg-green-lt', 'closed': 'bg-blue-lt', 'missing': 'bg-red-lt', 'moved': 'bg-orange-lt'}[link.state] ?? 'bg-secondary-lt' %}
+                            <span class="badge {{ badge }}">{{ link.state_label }}</span>
+                            {% if link.state == 'closed' and link.date_closed %}
+                                <div class="text-muted small">{{ link.date_closed }}{% if link.closed_by %} – {{ link.closed_by }}{% endif %}</div>
+                            {% endif %}
+                            {% if link.last_error %}
+                                <div class="text-danger small">{{ link.last_error }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ link.date_last_check }}</td>
+                        <td class="text-end">
+                            {% if can_update and link.state == 'opened' %}
+                                <form method="post" action="{{ base }}/Link/{{ link.id }}/Refresh" class="d-inline">
+                                    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="ti ti-refresh"></i> {{ __('Refresh', 'gitlabissues') }}</button>
+                                </form>
+                            {% endif %}
+                            {% if can_delete %}
+                                <form method="post" action="{{ base }}/Link/{{ link.id }}/Unlink" class="d-inline"
+                                      onsubmit="return confirm('{{ __('Stop following this issue? It will not be changed on GitLab.', 'gitlabissues')|e('js') }}');">
+                                    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"><i class="ti ti-unlink"></i> {{ __('Unlink', 'gitlabissues') }}</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if not configured %}
+        <div class="card-footer text-muted">
+            {{ __('The plugin is not configured yet.', 'gitlabissues') }}
+            {% if can_config %}<a href="{{ base }}/Config">{{ __('Configure it', 'gitlabissues') }}</a>{% endif %}
+        </div>
+    {% elseif can_create %}
+        {% set rand = random() %}
+        <form method="post" action="{{ base }}/Ticket/{{ ticket_id }}/Issue" class="card-footer">
+            <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label" for="gli_project_{{ rand }}">{{ __('GitLab project', 'gitlabissues') }}</label>
+                    <select id="gli_project_{{ rand }}" name="project_id" class="form-select" required style="width:100%">
+                        {% if default_project %}
+                            <option value="{{ default_project.id }}" selected>{{ default_project.text }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="gli_labels_{{ rand }}">{{ __('Additional labels', 'gitlabissues') }}</label>
+                    <input id="gli_labels_{{ rand }}" type="text" name="labels" class="form-control" placeholder="{{ default_labels }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100"><i class="ti ti-brand-gitlab"></i> {{ __('Create GitLab issue', 'gitlabissues') }}</button>
+                </div>
+            </div>
+            {% if links is not empty %}
+                <label class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="allow_duplicate" value="1">
+                    <span class="form-check-label">{{ __('Create another issue even if one is already open in this project', 'gitlabissues') }}</span>
+                </label>
+            {% endif %}
+        </form>
+        <script>
+            $(function () {
+                $('#gli_project_{{ rand }}').select2({
+                    width: '100%',
+                    minimumInputLength: 0,
+                    placeholder: {{ __('Search a project…', 'gitlabissues')|json_encode|raw }},
+                    ajax: {
+                        url: {{ (base ~ '/Projects')|json_encode|raw }},
+                        dataType: 'json',
+                        delay: 300,
+                        data: function (params) { return {term: params.term || '', page: params.page || 1}; }
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+</div>

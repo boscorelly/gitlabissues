@@ -1,0 +1,107 @@
+{% extends "layout/page_without_tabs.html.twig" %}
+
+{% set container_size = "narrow" %}
+
+{% block content_title %}{{ __('GitLab Issues', 'gitlabissues') }}{% endblock %}
+
+{% block content_body %}
+<form method="post" action="{{ form_url }}">
+    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ __('GitLab connection', 'gitlabissues') }}</h3></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">{{ __('GitLab URL', 'gitlabissues') }}</label>
+                <input type="url" name="gitlab_url" class="form-control" value="{{ settings.gitlab_url }}" placeholder="https://gitlab.example.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Access token', 'gitlabissues') }}</label>
+                <input type="password" name="gitlab_token" class="form-control" autocomplete="new-password"
+                       placeholder="{{ has_token ? __('(unchanged)', 'gitlabissues') : '' }}">
+                <div class="form-text">{{ __('A project or group access token with the "api" scope and the Reporter role (or more) is enough. It is stored encrypted.', 'gitlabissues') }}</div>
+            </div>
+            <button type="submit" name="_test" value="1" class="btn btn-outline-primary">{{ __('Save and test the connection', 'gitlabissues') }}</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ __('Issue creation', 'gitlabissues') }}</h3></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">{{ __('Default project', 'gitlabissues') }}</label>
+                <select id="gli_default_project" name="default_project_id" class="form-select" style="width:100%">
+                    {% if settings.default_project_id and settings.default_project_id != '0' %}
+                        <option value="{{ settings.default_project_id }}" selected>{{ settings.default_project_path ?: settings.default_project_id }}</option>
+                    {% endif %}
+                </select>
+                <input type="hidden" id="gli_default_project_path" name="default_project_path" value="{{ settings.default_project_path }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Issue title', 'gitlabissues') }}</label>
+                <input type="text" name="title_template" class="form-control" value="{{ settings.title_template }}">
+                <div class="form-text">{{ __('Placeholders: {id} (ticket number) and {title}.', 'gitlabissues') }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Default labels', 'gitlabissues') }}</label>
+                <input type="text" name="default_labels" class="form-control" value="{{ settings.default_labels }}">
+                <div class="form-text">{{ __('Comma separated.', 'gitlabissues') }}</div>
+            </div>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="confidential" value="1" {{ settings.confidential == '1' ? 'checked' }}><span class="form-check-label">{{ __('Create confidential issues', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="include_people" value="1" {{ settings.include_people == '1' ? 'checked' }}><span class="form-check-label">{{ __('Mention requesters and assignees in the issue', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="creation_followup" value="1" {{ settings.creation_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a private followup to the ticket when the issue is created', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="upload_attachments" value="1" {{ settings.upload_attachments == '1' ? 'checked' }}><span class="form-check-label">{{ __('Copy the ticket attachments and images to GitLab', 'gitlabissues') }}</span></label>
+            <div class="mt-2" style="max-width: 16rem">
+                <label class="form-label">{{ __('Maximum attachment size (MB)', 'gitlabissues') }}</label>
+                <input type="number" min="1" name="max_attachment_mb" class="form-control" value="{{ settings.max_attachment_mb }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ __('When the issue is closed on GitLab', 'gitlabissues') }}</h3></div>
+        <div class="card-body">
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="close_followup" value="1" {{ settings.close_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a followup to the ticket', 'gitlabissues') }}</span></label>
+            <label class="form-check ms-4"><input class="form-check-input" type="checkbox" name="close_followup_private" value="1" {{ settings.close_followup_private == '1' ? 'checked' }}><span class="form-check-label">{{ __('Private followup', 'gitlabissues') }}</span></label>
+            <label class="form-check mt-2"><input class="form-check-input" type="checkbox" name="close_solve_ticket" value="1" {{ settings.close_solve_ticket == '1' ? 'checked' }}><span class="form-check-label">{{ __('Solve the ticket (adds a solution, so notifications and automatic actions apply)', 'gitlabissues') }}</span></label>
+            <div class="mt-2">
+                <label class="form-label">{{ __('Solution type', 'gitlabissues') }}</label>
+                <select name="solutiontypes_id" class="form-select">
+                    <option value="0">—</option>
+                    {% for id, name in solution_types %}<option value="{{ id }}" {{ settings.solutiontypes_id == id ? 'selected' }}>{{ name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="mt-2">
+                <label class="form-label">{{ __('Solution text', 'gitlabissues') }}</label>
+                <textarea name="solution_template" class="form-control" rows="3">{{ settings.solution_template }}</textarea>
+                <div class="form-text">{{ __('Optional. Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. Empty = standard message.', 'gitlabissues') }}</div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label">{{ __('Author of the automatic followups and solutions', 'gitlabissues') }}</label>
+                <select name="actor_users_id" class="form-select">
+                    <option value="0">{{ __('The user who created the issue', 'gitlabissues') }}</option>
+                    {% for id, name in users %}<option value="{{ id }}" {{ settings.actor_users_id == id ? 'selected' }}>{{ name }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
+</form>
+
+<script>
+    $(function () {
+        $('#gli_default_project').select2({
+            width: '100%', allowClear: true, placeholder: {{ __('Search a project…', 'gitlabissues')|json_encode|raw }},
+            ajax: {
+                url: {{ projects_url|json_encode|raw }}, dataType: 'json', delay: 300,
+                data: function (params) { return {term: params.term || '', page: params.page || 1}; }
+            }
+        }).on('select2:select', function (e) {
+            $('#gli_default_project_path').val(e.params.data.text);
+        }).on('select2:clear', function () {
+            $('#gli_default_project_path').val('');
+        });
+    });
+</script>
+{% endblock %}
