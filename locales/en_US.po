@@ -13,6 +13,10 @@ msgid "The GitLab URL must start with http:// or https://"
 msgstr "The GitLab URL must start with http:// or https://"
 
 #: src/Controller/ConfigController.php
+msgid "The GitLab URL has changed: enter the access token again. Nothing was saved."
+msgstr "The GitLab URL has changed: enter the access token again. Nothing was saved."
+
+#: src/Controller/ConfigController.php
 msgid "Settings saved."
 msgstr "Settings saved."
 
@@ -27,6 +31,10 @@ msgstr "Connection successful: GitLab %1$s, authenticated as %2$s."
 #: src/Controller/ConfigController.php
 msgid "This token has no \"api\" scope: it can read issues but not create them."
 msgstr "This token has no \"api\" scope: it can read issues but not create them."
+
+#: src/Controller/IssueController.php
+msgid "You are not allowed to add followups to this ticket, so you cannot create an issue from it."
+msgstr "You are not allowed to add followups to this ticket, so you cannot create an issue from it."
 
 #: src/Controller/IssueController.php
 msgid "GitLab issue created: %s"
@@ -191,6 +199,10 @@ msgstr "Not found on GitLab"
 #: src/Link.php
 msgid "Moved to another project"
 msgstr "Moved to another project"
+
+#: src/Link.php
+msgid "No issue can be created for a closed or deleted ticket."
+msgstr "No issue can be created for a closed or deleted ticket."
 
 #: src/Link.php
 msgid "Select a GitLab project."

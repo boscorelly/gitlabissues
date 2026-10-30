@@ -98,6 +98,14 @@ class Link extends CommonDBTM
         ];
     }
 
+    /**
+     * Keep a URL received from GitLab only if it is http(s) (it ends up in links shown in GLPI).
+     */
+    public static function httpUrl(string $url): string
+    {
+        return preg_match('#^https?://#i', $url) ? $url : '';
+    }
+
     public static function getStateLabel(string $state): string
     {
         return match ($state) {
@@ -162,7 +170,8 @@ class Link extends CommonDBTM
             'ticket_id'    => $ticket->getID(),
             'links'        => $links,
             'configured'   => $configured,
-            'can_create'   => $configured && self::canCreate(),
+            'can_create'   => $configured && self::canCreate() && self::canCreateForTicket($ticket) && $ticket->canAddFollowups(),
+            'ticket_locked' => $configured && self::canCreate() && !self::canCreateForTicket($ticket),
             'can_update'   => self::canUpdate(),
             'can_delete'   => self::canDelete(),
             'can_config'   => Session::haveRight('config', UPDATE),
@@ -178,6 +187,15 @@ class Link extends CommonDBTM
     }
 
     // ---------------------------------------------------------------- creation
+
+    /**
+     * An issue cannot be created for a closed ticket, nor for a ticket in the trash. (A solved ticket is
+     * still allowed: it can be reopened, and the work may only be identified afterwards.)
+     */
+    public static function canCreateForTicket(Ticket $ticket): bool
+    {
+        return (int) $ticket->fields['status'] !== Ticket::CLOSED && empty($ticket->fields['is_deleted']);
+    }
 
     /**
      * Create the GitLab issue for a ticket and store the link.
@@ -201,6 +219,10 @@ class Link extends CommonDBTM
         /** @var \DBmysql $DB */
         global $DB;
 
+        // Enforced here, not only by hiding the form: a forged request must not get through either.
+        if (!self::canCreateForTicket($ticket)) {
+            throw new RuntimeException(__('No issue can be created for a closed or deleted ticket.', 'gitlabissues'));
+        }
         if ($project_id <= 0) {
             throw new RuntimeException(__('Select a GitLab project.', 'gitlabissues'));
         }
@@ -241,7 +263,7 @@ class Link extends CommonDBTM
                     'project_path'      => $path,
                     'issue_iid'         => (int) $issue['iid'],
                     'issue_id'          => (int) $issue['id'],
-                    'issue_url'         => (string) ($issue['web_url'] ?? ''),
+                    'issue_url'         => self::httpUrl((string) ($issue['web_url'] ?? '')),
                     'issue_title'       => mb_substr((string) ($issue['title'] ?? $payload['title']), 0, 255),
                     'state'             => self::STATE_OPENED,
                 ]);
@@ -294,14 +316,15 @@ class Link extends CommonDBTM
 
     private static function addCreationFollowup(Ticket $ticket, self $link, int $users_id, bool $private): void
     {
-        $url   = htmlspecialchars((string) $link->fields['issue_url'], ENT_QUOTES, 'UTF-8');
+        $url   = htmlspecialchars(self::httpUrl((string) $link->fields['issue_url']), ENT_QUOTES, 'UTF-8');
         $label = htmlspecialchars($link->fields['project_path'] . '#' . $link->fields['issue_iid'], ENT_QUOTES, 'UTF-8');
+        $shown = $url !== '' ? '<a href="' . $url . '">' . $label . '</a>' : $label;
 
         try {
             (new ITILFollowup())->add([
                 'itemtype'   => 'Ticket',
                 'items_id'   => $ticket->getID(),
-                'content'    => '<p>' . sprintf(__('GitLab issue created: %s', 'gitlabissues'), '<a href="' . $url . '">' . $label . '</a>') . '</p>',
+                'content'    => '<p>' . sprintf(__('GitLab issue created: %s', 'gitlabissues'), $shown) . '</p>',
                 'is_private' => $private ? 1 : 0,
                 'users_id'   => $users_id,
             ]);

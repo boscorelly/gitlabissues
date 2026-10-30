@@ -29,6 +29,7 @@ final class ProfileController extends AbstractController
         Link::saveProfileRights($profiles_id, (array) $request->request->all('rights'));
         Session::addMessageAfterRedirect(__('Rights updated.', 'gitlabissues'));
 
-        return new RedirectResponse($request->headers->get('referer') ?: Profile::getFormURLWithID($profiles_id));
+        // Fixed target (never the Referer header, which the client controls).
+        return new RedirectResponse(Profile::getFormURLWithID($profiles_id) . '&forcetab=' . rawurlencode(\GlpiPlugin\Gitlabissues\Profile::class . '$1'));
     }
 }

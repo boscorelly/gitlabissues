@@ -69,6 +69,20 @@ final class ConfigController extends AbstractController
 
             return new RedirectResponse($this->url('/Config'));
         }
+        // The stored token must never be sent to another server than the one it was entered for: someone
+        // with the "config" right but who does not know the token could otherwise point the URL to his own
+        // server and click "test". Changing the URL therefore requires typing the token again.
+        $stored = Settings::all();
+        if (
+            isset($input['gitlab_url'])
+            && rtrim(trim((string) $input['gitlab_url']), '/') !== $stored['gitlab_url']
+            && $stored['gitlab_token'] !== ''
+            && trim((string) ($input['gitlab_token'] ?? '')) === ''
+        ) {
+            Session::addMessageAfterRedirect(__('The GitLab URL has changed: enter the access token again. Nothing was saved.', 'gitlabissues'), false, ERROR);
+
+            return new RedirectResponse($this->url('/Config'));
+        }
         if (($input['default_project_id'] ?? '0') === '0') {
             $input['default_project_path'] = '';
         }

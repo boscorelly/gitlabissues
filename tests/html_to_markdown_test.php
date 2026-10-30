@@ -38,5 +38,13 @@ check('image resolver', '![shot](/uploads/abc/shot.png)', $img->convert('<p><img
 check('image fallback', '![](https://x.org/i.png)', $c->convert('<img src="https://x.org/i.png">'));
 check('bare text', 'just text', $c->convert('just text'));
 
+// Security: text from the requester must not act on GitLab
+$q = $c->convert('<p>Bonjour</p><p>/close</p><p>&nbsp;/move other/tools</p><p>texte<br>/assign @me</p>');
+if (preg_match('~^[\\s\\x{00A0}]*/~mu', $q)) { $fail++; }
+echo preg_match('~^[\s\x{00A0}]*/~mu', $q) ? "FAIL - quick actions still at a line start\n$q\n" : "ok   - no line starts with a quick action\n";
+check('mention neutralised (zero-width space after @)', "Merci @\u{200B}all et @\u{200B}john.doe", $c->convert('<p>Merci @all et @john.doe</p>'));
+check('e-mail address untouched', 'mail: a@b.fr', $c->convert('<p>mail: a@b.fr</p>'));
+check('code block untouched (GitLab ignores quick actions there)', "```\n/close\n```", $c->convert('<pre><code>/close</code></pre>'));
+
 echo $fail === 0 ? "\nALL PASSED\n" : "\n$fail FAILED\n";
 exit($fail === 0 ? 0 : 1);

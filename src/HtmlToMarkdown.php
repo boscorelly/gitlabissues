@@ -333,11 +333,26 @@ final class HtmlToMarkdown
     }
 
     /**
+     * Text written by the requester must not act on GitLab:
+     * - a line starting with "/" is a GitLab quick action (/close, /move, /assign...), executed with the
+     *   rights of the plugin's token when the issue is created: the slash is escaped;
+     * - "@name" / "@all" would notify GitLab users: a zero-width space is inserted after the "@"
+     *   (invisible, but no longer a mention). E-mail addresses are left untouched.
+     */
+    public static function neutraliseGitlab(string $text): string
+    {
+        $text = preg_replace('~^([\s\x{00A0}]*)/~mu', '$1\\\\/', $text) ?? $text;
+
+        return preg_replace('/(?<![\w@.])@(?=[\w.-])/u', "@\u{200B}", $text) ?? $text;
+    }
+
+    /**
      * Escape the characters that would be interpreted as Markdown inside normal text.
      */
     private function escape(string $text): string
     {
         $text = preg_replace('/([\\\\`*_\[\]<>~|])/', '\\\\$1', $text) ?? $text;
+        $text = self::neutraliseGitlab($text);
         // Line-start constructs (headings, lists, quotes) are only special at the start of a block.
         return preg_replace('/^(\s*)([#>+-]|\d+[.)])(\s)/m', '$1\\\\$2$3', $text) ?? $text;
     }

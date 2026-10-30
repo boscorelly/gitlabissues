@@ -65,6 +65,8 @@
             {{ __('The plugin is not configured yet.', 'gitlabissues') }}
             {% if can_config %}<a href="{{ base }}/Config">{{ __('Configure it', 'gitlabissues') }}</a>{% endif %}
         </div>
+    {% elseif ticket_locked %}
+        <div class="card-footer text-muted"><i class="ti ti-lock me-1"></i>{{ __('No issue can be created for a closed or deleted ticket.', 'gitlabissues') }}</div>
     {% elseif can_create %}
         {% set rand = random() %}
         <form method="post" action="{{ base }}/Ticket/{{ ticket_id }}/Issue" class="card-footer">

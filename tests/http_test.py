@@ -71,6 +71,32 @@ check('a self-service profile cannot be given rights through the form', stored_r
 a.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': a.ajax_token(), 'profiles[]': ['6'], 'rights[6][]': ['1', '2', '4', '8']})
 check('technician rights restored (15)', stored_rights(6) == '15', stored_rights(6))
 
+# a closed ticket: no form, an explanation, and a forged request is refused too
+import os
+closed_id = int(subprocess.run(['php', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'make_ticket.php'), '2'], capture_output=True, text=True, cwd=os.environ.get('GLPI_ROOT', '/opt/glpi-env/glpi')).stdout.strip().splitlines()[-1])
+subprocess.run(['mysql', '-uroot', 'glpi', '-e', f'update glpi_tickets set status=6 where id={closed_id}'])
+s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={closed_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
+check('closed ticket: no create form in the tab', s == 200 and 'name="project_id"' not in page and 'name="followup"' not in page)
+check('closed ticket: the tab explains why', 'closed or deleted ticket' in page or 'clos ou placé dans la corbeille' in page, page[-300:])
+n_before = len(mock('/_mock/state')['issues'])
+a.req(f'/plugins/gitlabissues/Ticket/{closed_id}/Issue', {'_glpi_csrf_token': a.ajax_token(), 'project_id': '2', 'allow_duplicate': '1', 'followup': 'none'})
+check('closed ticket: a forged creation request is refused (no issue created)', len(mock('/_mock/state')['issues']) == n_before)
+
+print('== security')
+before_url = cfg('gitlab_url')
+s, pg, _ = a.req('/plugins/gitlabissues/Config')
+a.req('/plugins/gitlabissues/Config', {'_glpi_csrf_token': a.token(pg), 'gitlab_url': 'http://127.0.0.1:8100', 'gitlab_token': '', 'requester_close_mode': 'none'})
+check('URL change without re-typing the token is refused (nothing saved)', cfg('gitlab_url') == before_url, cfg('gitlab_url'))
+s, pg, _ = a.req('/plugins/gitlabissues/Config')
+check('URL change refusal is explained', 'enter the access token again' in pg or 'saisissez à nouveau le jeton' in pg)
+s, b, h = a.req('/plugins/gitlabissues/Profile/2/Rights', {'_glpi_csrf_token': a.ajax_token(), 'rights[]': []}, headers={'Referer': 'https://evil.example/phish'})
+check('rights saved: redirect target ignores the Referer header', 'evil.example' not in h.get('Location', '') and 'profile.form.php' in h.get('Location', ''), h.get('Location', ''))
+n_issues = len(mock('/_mock/state')['issues'])
+for path, data in ((f'/Ticket/{ticket_id}/Issue', {'project_id': '2', 'allow_duplicate': '1'}), ('/Config', {'gitlab_url': 'http://x'}), ('/Config/Rights', {'profiles[]': ['6']}), ('/Profile/6/Rights', {'rights[]': []})):
+    s, _, _ = a.req('/plugins/gitlabissues' + path, data)
+    check(f'POST {path} without CSRF token rejected', s in (400, 403), str(s))
+check('requests without CSRF token had no effect', len(mock('/_mock/state')['issues']) == n_issues and cfg('gitlab_url') == before_url and stored_rights(6) == '15', f"{cfg('gitlab_url')} {stored_rights(6)}")
+
 # create via the real form flow
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
 ftok = a.token(page)

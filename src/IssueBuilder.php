@@ -197,7 +197,9 @@ final class IssueBuilder
     {
         $text = trim(preg_replace('/\s+/u', ' ', $text) ?? $text);
 
-        return preg_replace('/([\\\\`*_\[\]<>~|])/', '\\\\$1', $text) ?? $text;
+        $text = preg_replace('/([\\\\`*_\[\]<>~|])/', '\\\\$1', $text) ?? $text;
+
+        return HtmlToMarkdown::neutraliseGitlab($text);
     }
 
     /**

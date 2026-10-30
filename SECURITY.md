@@ -12,5 +12,7 @@ Include the plugin and GLPI versions, and the steps to reproduce. You will get a
 Never post a GitLab access token or a GLPI session in an issue, a log or a screenshot. If you did, revoke the token immediately.
 
 ## Scope notes
+- Text written by the requester cannot trigger GitLab quick actions (`/close`, `/move`…) nor mention GitLab users when it is copied into an issue.
+- The token is only sent to the URL it was entered for: changing the GitLab URL requires typing the token again.
 - The GitLab token is stored encrypted with GLPI's key and is never sent back to the browser.
 - Rights are checked server-side on every action; forms use GLPI's CSRF protection.

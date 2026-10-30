@@ -24,6 +24,12 @@ final class IssueController extends AbstractController
         if (!Link::canCreate()) {
             throw new AccessDeniedHttpException();
         }
+        // Creating an issue writes followups on the ticket (technical link, message to the requester).
+        if (!$ticket->canAddFollowups()) {
+            Session::addMessageAfterRedirect(__('You are not allowed to add followups to this ticket, so you cannot create an issue from it.', 'gitlabissues'), false, ERROR);
+
+            return $this->backToTicket($tickets_id);
+        }
 
         try {
             $res = Link::createFromTicket(
@@ -35,10 +41,10 @@ final class IssueController extends AbstractController
                 (string) $request->request->get('followup', ''),
                 $request->request->has('notify_requester') ? $request->request->getBoolean('notify_requester') : null
             );
-            $url = htmlspecialchars((string) $res['link']->fields['issue_url'], ENT_QUOTES, 'UTF-8');
+            $url   = htmlspecialchars(Link::httpUrl((string) $res['link']->fields['issue_url']), ENT_QUOTES, 'UTF-8');
+            $label = htmlspecialchars($res['link']->fields['project_path'] . '#' . $res['link']->fields['issue_iid'], ENT_QUOTES, 'UTF-8');
             Session::addMessageAfterRedirect(
-                sprintf(__('GitLab issue created: %s', 'gitlabissues'), '<a href="' . $url . '" target="_blank" rel="noopener">'
-                    . htmlspecialchars($res['link']->fields['project_path'] . '#' . $res['link']->fields['issue_iid'], ENT_QUOTES, 'UTF-8') . '</a>'),
+                sprintf(__('GitLab issue created: %s', 'gitlabissues'), $url !== '' ? '<a href="' . $url . '" target="_blank" rel="noopener">' . $label . '</a>' : $label),
                 false,
                 INFO
             );

@@ -2,6 +2,15 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.5
+Security review – fixes:
+- **GitLab quick actions and mentions injected through the ticket**: text written by the requester was copied as is into the issue description, so a line such as `/close`, `/move group/other` or `/assign @someone` could act on GitLab with the token's rights, and `@all` / `@name` notified GitLab users. Lines starting with `/` are now escaped and mentions neutralised (e-mail addresses and code blocks are untouched).
+- **Token exfiltration**: someone with the GLPI *config* right but who did not know the token could point the GitLab URL to his own server and click *test*: the stored token was sent there. Changing the URL now requires typing the token again.
+- **Redirect after saving profile rights** followed the `Referer` header; it now always goes back to the profile.
+- **Creating an issue requires the right to add followups** to the ticket, since the creation writes followups on it.
+- URLs received from GitLab are kept only if they are http(s); the language file name is only taken from GLPI's table of languages.
+- Fix: an issue could still be created from a **closed** ticket (or one in the trash). The tab now hides the form and says why, and the creation itself refuses such a ticket, so a forged request does not get through either. A solved ticket is still allowed (it can be reopened).
+
 ## 1.0.4
 - **Languages**: English (`en_GB`, `en_US`) is now shipped next to French, with a translation template (`locales/gitlabissues.pot`) and a maintenance script (`tools/locales.py`). Language rule: **the user's language if the plugin has it, otherwise English**. Before, GLPI fell back on the instance's *default* language: on a French instance every user, English speakers included, got French.
 - The neutral messages for the requester follow the same rule: the language of the interface (the technician's when he creates the issue; the instance's default language for the automatic action), English if the plugin has no catalogue for it.

@@ -14,7 +14,7 @@ use Glpi\Plugin\Hooks;
 use GlpiPlugin\Gitlabissues\Link;
 use GlpiPlugin\Gitlabissues\Profile as PluginProfile;
 
-define('PLUGIN_GITLABISSUES_VERSION', '1.0.4');
+define('PLUGIN_GITLABISSUES_VERSION', '1.0.5');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_GITLABISSUES_MIN_GLPI', '11.0.0');
@@ -102,9 +102,10 @@ function plugin_gitlabissues_post_init(): void
 
     $lang = $_SESSION['glpilanguage'] ?? ($CFG_GLPI['language'] ?? 'en_GB');
     $dir  = Plugin::getPhpDir('gitlabissues') . '/locales/';
-    $file = $CFG_GLPI['languages'][$lang][1] ?? ($lang . '.mo');
+    // File name only from GLPI's table of languages (never built from session data).
+    $file = $CFG_GLPI['languages'][$lang][1] ?? null;
 
-    if (!is_file($dir . $file) && is_file($dir . 'en_GB.mo')) {
+    if (($file === null || !is_file($dir . basename($file))) && is_file($dir . 'en_GB.mo')) {
         $TRANSLATE->addTranslationFile('gettext', $dir . 'en_GB.mo', 'gitlabissues', $lang);
     }
 }

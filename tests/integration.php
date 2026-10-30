@@ -157,6 +157,26 @@ $t17 = newTicket('Info demandeur setting off', '<p>x</p>');
 Link::createFromTicket($t17, 1, '', 2);
 ok('setting off (default): nothing public', publicFollowups($t17->getID()) === []);
 
+echo "== Security: content from the requester and URLs from GitLab\n";
+$tq = newTicket('Injection', '<p>Bonjour</p><p>/close</p><p>/move other/tools</p><p>@all regardez</p>');
+$lq = Link::createFromTicket($tq, 1, '', 2, true, 'none')['link'];
+$dq = mock('/_mock/state')['issues']['1/' . $lq->fields['issue_iid']]['description'] ?? '';
+ok('description: no line starts with a GitLab quick action', $dq !== '' && !preg_match('~^[\s\x{00A0}]*/~mu', $dq), $dq);
+ok('description: "@all" is not a mention anymore', str_contains($dq, "@\u{200B}all") && !preg_match('/(?<![\w@.])@all/u', $dq));
+ok('URLs from GitLab: only http(s) kept', Link::httpUrl('javascript:alert(1)') === '' && Link::httpUrl('https://g.example/x') === 'https://g.example/x');
+
+echo "== Closed / deleted tickets: no issue can be created\n";
+$issues_before = count(mock('/_mock/state')['issues']);
+$tc = newTicket('Ticket clos', '<p>x</p>'); $DB->update('glpi_tickets', ['status' => Ticket::CLOSED], ['id' => $tc->getID()]); $tc->getFromDB($tc->getID());
+try { Link::createFromTicket($tc, 1, '', 2, true); ok('closed ticket: creation refused', false); }
+catch (RuntimeException $e) { ok('closed ticket: creation refused with an explicit message', str_contains($e->getMessage(), 'clos') || str_contains($e->getMessage(), 'closed')); }
+$td = newTicket('Ticket corbeille', '<p>x</p>'); $DB->update('glpi_tickets', ['is_deleted' => 1], ['id' => $td->getID()]); $td->getFromDB($td->getID());
+try { Link::createFromTicket($td, 1, '', 2, true); ok('ticket in the trash: creation refused', false); }
+catch (RuntimeException $e) { ok('ticket in the trash: creation refused', true); }
+ok('refused: nothing created on GitLab, no link stored', count(mock('/_mock/state')['issues']) === $issues_before && countElementsInTable(Link::getTable(), ['tickets_id' => [$tc->getID(), $td->getID()]]) === 0);
+$ts = newTicket('Ticket resolu', '<p>x</p>'); $DB->update('glpi_tickets', ['status' => Ticket::SOLVED], ['id' => $ts->getID()]); $ts->getFromDB($ts->getID());
+ok('solved ticket: still allowed (it can be reopened)', Link::createFromTicket($ts, 1, '', 2, true, 'none')['link']->getID() > 0);
+
 echo "== Cron: nothing to do while issues are open\n";
 runCron();
 $row = linkOf($link1->getID());
