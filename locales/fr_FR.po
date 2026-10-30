@@ -318,3 +318,48 @@ msgstr "Public"
 
 msgid "None"
 msgstr "Aucun"
+
+msgid "Rights by profile"
+msgstr "Droits par profil"
+
+msgid "Rights are cumulative: \"Read\" is required for the others. The same rights can be edited in the \"GitLab issues\" tab of each profile (Administration > Profiles). Self-service profiles cannot use the plugin."
+msgstr "Les droits sont cumulatifs : « Lecture » est requise pour les autres. Les mêmes droits se modifient dans l'onglet « Issues GitLab » de chaque profil (Administration > Profils). Les profils self-service ne peuvent pas utiliser le plugin."
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "You need the update right on profiles to change these rights."
+msgstr "Il faut le droit de modification sur les profils pour changer ces droits."
+
+msgid "Save the rights"
+msgstr "Enregistrer les droits"
+
+msgid "Your request has been taken into account by the technical team and forwarded to the people in charge of the development. You will be informed of the outcome."
+msgstr "Votre demande a été prise en compte par l'équipe technique et transmise aux personnes en charge du développement. Vous serez informé(e) de la suite."
+
+msgid "The technical work related to your request is complete."
+msgstr "Le traitement technique lié à votre demande est terminé."
+
+msgid "Inform the requester with a public followup"
+msgstr "Informer le demandeur par un suivi public"
+
+msgid "Inform the requester"
+msgstr "Informer le demandeur"
+
+msgid "Requesters, who are often not technicians, never see the GitLab tab. These neutral public messages tell them that their request was forwarded and completed, without any GitLab detail (project, developer, link). GLPI notifications apply to public followups."
+msgstr "Les demandeurs, souvent non techniciens, ne voient jamais l'onglet GitLab. Ces messages publics neutres leur indiquent que leur demande a été transmise puis traitée, sans aucun détail GitLab (projet, développeur, lien). Les notifications GLPI s'appliquent aux suivis publics."
+
+msgid "When an issue is created, add a public followup (the technician can change this for each issue)"
+msgstr "À la création d'une issue, ajouter un suivi public (le technicien peut le modifier pour chaque issue)"
+
+msgid "Message to the requester"
+msgstr "Message au demandeur"
+
+msgid "Plain text. Empty = default message."
+msgstr "Texte brut. Vide = message par défaut."
+
+msgid "When the issue is closed, add a public followup"
+msgstr "À la fermeture de l'issue, ajouter un suivi public"
+
+msgid "Plain text. Empty = default message. If \"Solve the ticket\" is on, no separate followup is added: this message becomes the text of the solution when you give no solution text below."
+msgstr "Texte brut. Vide = message par défaut. Si « Résoudre le ticket » est activé, aucun suivi séparé n'est ajouté : ce message devient le texte de la solution quand vous n'en donnez pas plus bas."

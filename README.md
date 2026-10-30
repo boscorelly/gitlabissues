@@ -27,9 +27,28 @@ Tested on **GLPI 11.0.11** (PHP 8.3, MariaDB 10.11) against a mock of the GitLab
 | GitLab unreachable, token refused, rate limit | Run stops cleanly, error shown in the tab, retried at the next run |
 | Failure while acting on the ticket | Everything rolled back; issue stays "open" and is retried, no duplicates |
 
+## Informing the requester (non-technicians)
+Requesters never see the "GitLab issues" tab. By default they learn nothing about the issue. Two options (*Setup > Plugins > GitLab Issues > Inform the requester*)
+add **neutral public followups**, with no GitLab detail (no project, link, developer or merge request):
+- when an issue is created (the technician can untick "Inform the requester" for a given issue): by default *"Your request has been taken into account by the technical team and forwarded to the people in charge of the development. You will be informed of the outcome."*
+- when the issue is closed: *"The technical work related to your request is complete."* If "Solve the ticket" is on, the solution carries this text instead (no extra followup).
+
+Both texts can be changed. GLPI notifications apply to public followups and solutions. The technical details (who closed the issue, when, merge requests) remain in the **private** followups.
+
 ## Rights
-*Administration > Profiles > (profile) > GitLab issues*: read, create, refresh, unlink. The configuration page requires GLPI's *Setup > Update* right.
-Rights are checked server-side on every action; forms use GLPI's CSRF protection.
+*Administration > Profiles > (profile) > GitLab issues* tab (last tab of the profile page) or the **Rights by profile** table of the plugin's configuration page: read, create, refresh, unlink. Rights are cumulative: **read is required** for
+the others (ticking a right also grants read), and profiles of the self-service interface can never use the plugin.
+The configuration page requires GLPI's *Setup > Update* right. Rights are checked server-side on every action, not only by hiding
+buttons; forms use GLPI's CSRF protection.
+
+| Right | Allows |
+|---|---|
+| Read | See the "GitLab issues" tab of a ticket and the status of the linked issues |
+| Create an issue | Search projects and create an issue (also needs access to the ticket) |
+| Refresh the status | "Refresh" button |
+| Unlink | "Unlink" button |
+
+Profiles that can already update tickets get all four rights when the plugin is first installed; adjust them in the profile.
 
 ## Update
 Replace the folder, clear GLPI's cache (`php bin/console cache:clear`), then in *Setup > Plugins* click *Update* and *Activate*

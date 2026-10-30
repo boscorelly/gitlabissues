@@ -94,6 +94,12 @@
                     <button type="submit" class="btn btn-primary w-100"><i class="ti ti-brand-gitlab"></i> {{ __('Create GitLab issue', 'gitlabissues') }}</button>
                 </div>
             </div>
+            <input type="hidden" name="notify_requester" value="0">
+            <label class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="notify_requester" value="1" {{ default_notify ? 'checked' }}>
+                <span class="form-check-label">{{ __('Inform the requester with a public followup', 'gitlabissues') }}</span>
+            </label>
+            <div class="form-text ms-4">« {{ notice_text }} »</div>
             {% if links is not empty %}
                 <label class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="allow_duplicate" value="1">

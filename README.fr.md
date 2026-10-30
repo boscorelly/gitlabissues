@@ -53,10 +53,29 @@ Cas particuliers :
 | GitLab **injoignable**, jeton refusé, limite de requêtes | L'exécution s'arrête proprement, l'erreur est affichée dans l'onglet, nouvelle tentative au passage suivant |
 | Échec pendant les actions sur le ticket | **Annulation complète** (transaction) : l'issue reste « ouverte » et tout est rejoué au passage suivant, sans doublon |
 
+## Informer le demandeur (non-techniciens)
+Le demandeur ne voit jamais l'onglet « Issues GitLab » : par défaut, il ne sait rien de l'issue. Deux options (*Configuration > Plugins > Issues GitLab > Informer le demandeur*)
+ajoutent des **suivis publics neutres**, sans aucun détail GitLab (ni projet, ni lien, ni développeur, ni merge request) :
+- à la création d'une issue (le technicien peut décocher « Informer le demandeur » pour une issue donnée) : par défaut *« Votre demande a été prise en compte par l'équipe technique et transmise aux personnes en charge du développement. Vous serez informé(e) de la suite. »*
+- à la fermeture de l'issue : *« Le traitement technique lié à votre demande est terminé. »* Si « Résoudre le ticket » est activé, la solution porte ce texte à la place (pas de suivi en plus).
+
+Les deux textes sont modifiables. Les notifications GLPI s'appliquent aux suivis publics et aux solutions. Les détails techniques (qui a fermé l'issue, quand, merge requests) restent dans les suivis **privés**.
+
 ## Droits
-*Administration > Profils > (profil) > onglet Issues GitLab* : lecture, création d'issue, actualisation, déliaison.
-La page de configuration nécessite le droit GLPI *Configuration > Mettre à jour*. Les droits sont vérifiés **côté serveur**
-à chaque action ; les formulaires sont protégés par le CSRF de GLPI.
+Onglet **Issues GitLab** d'un profil (*Administration > Profils > (profil)*, dernier onglet de la page) ou tableau **Droits par profil** de la page de configuration du plugin : lecture, création d'issue, actualisation, déliaison.
+Les droits sont cumulatifs : **la lecture est requise** pour les autres (cocher un droit accorde aussi la lecture), et les profils
+de l'interface self-service ne peuvent jamais utiliser le plugin. La page de configuration nécessite le droit GLPI
+*Configuration > Mettre à jour*. Les droits sont vérifiés **côté serveur** à chaque action, pas seulement en masquant les boutons ;
+les formulaires sont protégés par le CSRF de GLPI.
+
+| Droit | Permet |
+|---|---|
+| Lecture | Voir l'onglet « Issues GitLab » d'un ticket et le statut des issues liées |
+| Créer une issue | Rechercher un projet et créer une issue (nécessite aussi l'accès au ticket) |
+| Actualiser le statut | Bouton « Actualiser » |
+| Délier | Bouton « Délier » |
+
+Les profils qui peuvent déjà modifier les tickets reçoivent les quatre droits à la première installation ; ajustez-les dans le profil.
 
 ## Mise à jour du plugin
 Aucun dépôt n'est nécessaire : GLPI compare la version écrite dans `setup.php` à celle qu'il a en base.

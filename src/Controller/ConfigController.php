@@ -6,6 +6,9 @@ use Glpi\Controller\AbstractController;
 use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Gitlabissues\GitlabClient;
 use GlpiPlugin\Gitlabissues\GitlabException;
+use GlpiPlugin\Gitlabissues\Link;
+use GlpiPlugin\Gitlabissues\RequesterNotice;
+use ProfileRight;
 use GlpiPlugin\Gitlabissues\Settings;
 use Session;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -30,6 +33,12 @@ final class ConfigController extends AbstractController
             'projects_url' => $this->url('/Projects'),
             'solution_types' => $this->solutionTypes(),
             'users'     => $this->users($settings['actor_users_id']),
+            'default_notice_creation' => RequesterNotice::defaultText(RequesterNotice::CREATION),
+            'default_notice_close' => RequesterNotice::defaultText(RequesterNotice::CLOSURE),
+            'profiles'  => $this->profiles(),
+            'right_labels' => (new Link())->getRights(),
+            'can_edit_rights' => Session::haveRight('profile', UPDATE),
+            'rights_url' => $this->url('/Config/Rights'),
         ]);
     }
 
@@ -40,7 +49,7 @@ final class ConfigController extends AbstractController
         $input = $request->request->all();
 
         // Checkboxes are absent from the POST when unchecked.
-        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'creation_followup_private', 'close_followup', 'close_followup_private', 'close_solve_ticket'] as $flag) {
+        foreach (['confidential', 'include_people', 'upload_attachments', 'creation_followup', 'creation_followup_private', 'notify_requester', 'notify_requester_close', 'close_followup', 'close_followup_private', 'close_solve_ticket'] as $flag) {
             $input[$flag] = !empty($input[$flag]) ? '1' : '0';
         }
         foreach (['max_attachment_mb', 'solutiontypes_id', 'actor_users_id', 'default_project_id'] as $number) {
@@ -67,6 +76,49 @@ final class ConfigController extends AbstractController
         }
 
         return new RedirectResponse($this->url('/Config'));
+    }
+
+    /**
+     * Rights per profile, edited from the configuration page (same data as the "GitLab issues"
+     * tab of each profile). Needs both the "config" and the "profile" update rights.
+     */
+    #[Route('/Config/Rights', name: 'gitlabissues_config_rights', methods: ['POST'])]
+    public function saveRights(Request $request): Response
+    {
+        $this->checkRight();
+        if (!Session::haveRight('profile', UPDATE)) {
+            throw new AccessDeniedHttpException();
+        }
+
+        $ticked  = $request->request->all('rights');   // [profiles_id => [right, ...]]
+        $central = array_column($this->profiles(), 'id');
+        foreach (array_map('intval', $request->request->all('profiles')) as $profiles_id) {
+            // Only the profiles that were displayed (central interface) can be changed.
+            if (in_array($profiles_id, $central, true)) {
+                Link::saveProfileRights($profiles_id, (array) ($ticked[$profiles_id] ?? []));
+            }
+        }
+        Session::addMessageAfterRedirect(__('Rights updated.', 'gitlabissues'));
+
+        return new RedirectResponse($this->url('/Config'));
+    }
+
+    /**
+     * Profiles of the central (technician) interface with their current plugin rights.
+     *
+     * @return array<int, array{id: int, name: string, value: int}>
+     */
+    private function profiles(): array
+    {
+        /** @var \DBmysql $DB */
+        global $DB;
+        $profiles = [];
+        foreach ($DB->request(['FROM' => 'glpi_profiles', 'WHERE' => ['interface' => 'central'], 'ORDER' => 'name']) as $row) {
+            $rights     = ProfileRight::getProfileRights((int) $row['id'], [Link::$rightname]);
+            $profiles[] = ['id' => (int) $row['id'], 'name' => $row['name'], 'value' => (int) ($rights[Link::$rightname] ?? 0)];
+        }
+
+        return $profiles;
     }
 
     private function testConnection(): void

@@ -32,7 +32,8 @@ final class IssueController extends AbstractController
                 (string) $request->request->get('labels', ''),
                 (int) Session::getLoginUserID(),
                 $request->request->getBoolean('allow_duplicate'),
-                (string) $request->request->get('followup', '')
+                (string) $request->request->get('followup', ''),
+                $request->request->has('notify_requester') ? $request->request->getBoolean('notify_requester') : null
             );
             $url = htmlspecialchars((string) $res['link']->fields['issue_url'], ENT_QUOTES, 'UTF-8');
             Session::addMessageAfterRedirect(
@@ -64,7 +65,8 @@ final class IssueController extends AbstractController
                 false,
                 INFO
             );
-        } catch (GitlabException $e) {
+        } catch (GitlabException | \RuntimeException $e) {
+            // GitLab error, or the actions on the ticket failed (rolled back, retried by the automatic action).
             Session::addMessageAfterRedirect(htmlspecialchars($e->getMessage()), false, ERROR);
         }
 

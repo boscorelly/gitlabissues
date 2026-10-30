@@ -7,6 +7,7 @@ use CommonGLPI;
 use Glpi\Application\View\TemplateRenderer;
 use Html;
 use ITILFollowup;
+use ProfileRight;
 use RuntimeException;
 use Session;
 use Ticket;
@@ -28,6 +29,54 @@ class Link extends CommonDBTM
     public const STATE_CLOSED  = 'closed';
     public const STATE_MISSING = 'missing'; // deleted or no longer reachable on GitLab
     public const STATE_MOVED   = 'moved';   // moved to another project: cannot be followed
+
+    // ---------------------------------------------------------------- rights
+
+    /**
+     * Store the plugin rights of a profile from the ticked rights (values of getRights()).
+     * READ is added whenever something is ticked: the other rights are useless without it.
+     *
+     * @param array<int, int|string> $ticked
+     */
+    public static function saveProfileRights(int $profiles_id, array $ticked): void
+    {
+        $allowed = array_keys((new self())->getRights());
+        $value   = 0;
+        foreach ($ticked as $right) {
+            if (in_array((int) $right, $allowed, true)) {
+                $value |= (int) $right;
+            }
+        }
+        if ($value > 0) {
+            $value |= READ;
+        }
+        ProfileRight::updateProfileRights($profiles_id, [self::$rightname => $value]);
+    }
+    //
+    // Every check made by the plugin goes through these four methods (tab, controllers).
+    // - The plugin is for technicians: profiles of the self-service interface never pass,
+    //   even if a right was set for them in the database.
+    // - READ is required for everything else: "create" or "unlink" without "read" gives nothing.
+
+    public static function canView(): bool
+    {
+        return Session::getCurrentInterface() === 'central' && parent::canView();
+    }
+
+    public static function canCreate(): bool
+    {
+        return self::canView() && parent::canCreate();
+    }
+
+    public static function canUpdate(): bool
+    {
+        return self::canView() && parent::canUpdate();
+    }
+
+    public static function canDelete(): bool
+    {
+        return self::canView() && parent::canDelete();
+    }
 
     public static function getTypeName($nb = 0): string
     {
@@ -122,6 +171,8 @@ class Link extends CommonDBTM
                 : null,
             'default_labels' => Settings::get('default_labels'),
             'default_followup' => self::defaultFollowupMode(),
+            'default_notify' => Settings::get('notify_requester') === '1',
+            'notice_text' => RequesterNotice::text(RequesterNotice::CREATION),
             'base'         => ($CFG_GLPI['root_doc'] ?? '') . '/plugins/gitlabissues',
         ]);
     }
@@ -132,6 +183,7 @@ class Link extends CommonDBTM
      * Create the GitLab issue for a ticket and store the link.
      *
      * @param string|null $followup 'private', 'public' or 'none'; null = use the plugin settings
+     * @param bool|null   $notify_requester add the neutral public message for the requester; null = use the plugin settings
      *
      * @return array{link: Link, warnings: string[]}
      *
@@ -144,6 +196,7 @@ class Link extends CommonDBTM
         int $users_id = 0,
         bool $allow_duplicate = false,
         ?string $followup = null,
+        ?bool $notify_requester = null,
     ): array {
         /** @var \DBmysql $DB */
         global $DB;
@@ -216,6 +269,11 @@ class Link extends CommonDBTM
         $mode = in_array($followup, ['private', 'public', 'none'], true) ? $followup : self::defaultFollowupMode();
         if ($mode !== 'none') {
             self::addCreationFollowup($ticket, $link, $users_id, $mode === 'private');
+        }
+
+        if ($notify_requester ?? (Settings::get('notify_requester') === '1')) {
+            // Neutral public followup: the requester learns that a technician forwarded his request.
+            Sync::addFollowup($ticket->getID(), RequesterNotice::html(RequesterNotice::CREATION), false, $users_id);
         }
 
         return ['link' => $link, 'warnings' => $payload['warnings']];

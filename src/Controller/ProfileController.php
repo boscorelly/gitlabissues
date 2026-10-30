@@ -6,7 +6,6 @@ use Glpi\Controller\AbstractController;
 use Glpi\Exception\Http\AccessDeniedHttpException;
 use GlpiPlugin\Gitlabissues\Link;
 use Profile;
-use ProfileRight;
 use Session;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,14 +26,7 @@ final class ProfileController extends AbstractController
             throw new \Glpi\Exception\Http\NotFoundHttpException();
         }
 
-        $allowed = array_keys((new Link())->getRights());
-        $value   = 0;
-        foreach ((array) $request->request->all('rights') as $right) {
-            if (in_array((int) $right, $allowed, true)) {
-                $value |= (int) $right;
-            }
-        }
-        ProfileRight::updateProfileRights($profiles_id, [Link::$rightname => $value]);
+        Link::saveProfileRights($profiles_id, (array) $request->request->all('rights'));
         Session::addMessageAfterRedirect(__('Rights updated.', 'gitlabissues'));
 
         return new RedirectResponse($request->headers->get('referer') ?: Profile::getFormURLWithID($profiles_id));

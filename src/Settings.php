@@ -28,9 +28,13 @@ final class Settings
         'max_attachment_mb'      => '10',
         'creation_followup'      => '1',
         'creation_followup_private' => '1',
+        'notify_requester'       => '0',
+        'notify_requester_text'  => '',
         // When the issue is closed
         'close_followup'         => '1',
         'close_followup_private' => '1',
+        'notify_requester_close' => '0',
+        'notify_requester_close_text' => '',
         'close_solve_ticket'     => '0',
         'solutiontypes_id'       => '0',
         'solution_template'      => '',

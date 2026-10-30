@@ -5,6 +5,7 @@ namespace GlpiPlugin\Gitlabissues;
 use CronTask;
 use ITILFollowup;
 use ITILSolution;
+use Session;
 use Throwable;
 use Ticket;
 use Toolbox;
@@ -66,6 +67,14 @@ final class Sync
      * @return array{checked: int, closed: int, moved: int, missing: int, errors: int, aborted: bool}
      */
     public static function run(int $limit = self::DEFAULT_BATCH_SIZE, ?CronTask $task = null): array
+    {
+        return self::asSystem(static fn(): array => self::runBatch($limit, $task));
+    }
+
+    /**
+     * @return array{checked: int, closed: int, moved: int, missing: int, errors: int, aborted: bool}
+     */
+    private static function runBatch(int $limit, ?CronTask $task): array
     {
         /** @var \DBmysql $DB */
         global $DB;
@@ -168,19 +177,59 @@ final class Sync
             return Link::getStateLabel($row['state']);
         }
 
-        try {
-            $issue = $client->getIssue((int) $row['gitlab_project_id'], (int) $row['issue_iid']);
-            self::handleIssue($row, $issue, $client, $stats);
-        } catch (GitlabException $e) {
-            if ($e->getKind() !== GitlabException::NOT_FOUND) {
-                throw $e;
+        // Same context as the automatic action, whoever clicked: the actions on the ticket must not
+        // depend on the rights of the technician who pressed "Refresh".
+        self::asSystem(static function () use ($client, $row, &$stats): void {
+            try {
+                $issue = $client->getIssue((int) $row['gitlab_project_id'], (int) $row['issue_iid']);
+                self::handleIssue($row, $issue, $client, $stats);
+            } catch (GitlabException $e) {
+                if ($e->getKind() !== GitlabException::NOT_FOUND) {
+                    throw $e;
+                }
+                self::handleNotFound($row, $e->getMessage(), $stats);
             }
-            self::handleNotFound($row, $e->getMessage(), $stats);
-        }
+        });
 
         $link->getFromDB((int) $row['id']);
 
         return Link::getStateLabel($link->fields['state']);
+    }
+
+    /**
+     * Run $fn like GLPI's automatic actions do: no logged-in user, full entity access. Followups and
+     * solutions are then added with the author chosen in the settings, whatever the rights of the
+     * person who triggered the check. The user's session is restored afterwards (flash messages kept).
+     *
+     * @template T
+     * @param callable(): T $fn
+     *
+     * @return T
+     */
+    private static function asSystem(callable $fn): mixed
+    {
+        if (Session::isCron()) {
+            return $fn();
+        }
+
+        $saved = $_SESSION;
+        try {
+            unset($_SESSION['glpiID'], $_SESSION['glpiactiveprofile']);
+            $_SESSION['glpicronuserrunning'] = 'cron_CheckIssues';
+            Session::loadEntity(0, true);
+            $_SESSION['glpigroups'] = [];
+            $_SESSION['glpiname']   = 'cron';
+
+            return $fn();
+        } finally {
+            $messages = $_SESSION['MESSAGE_AFTER_REDIRECT'] ?? [];
+            $_SESSION = $saved;
+            foreach ($messages as $level => $list) {
+                foreach ((array) $list as $message) {
+                    $_SESSION['MESSAGE_AFTER_REDIRECT'][$level][] = $message;
+                }
+            }
+        }
     }
 
     // ---------------------------------------------------------------- handlers
@@ -270,7 +319,15 @@ final class Sync
                         );
                     }
 
-                    if ($settings['close_solve_ticket'] === '1' && $status !== Ticket::SOLVED) {
+                    $will_solve = $settings['close_solve_ticket'] === '1' && $status !== Ticket::SOLVED;
+
+                    // The requester is told with a neutral public followup, unless the solution added just
+                    // below already informs him (one message, not two notifications).
+                    if ($settings['notify_requester_close'] === '1' && !$will_solve) {
+                        self::addFollowup($ticket->getID(), RequesterNotice::html(RequesterNotice::CLOSURE), false, $actor, true);
+                    }
+
+                    if ($will_solve) {
                         self::solveTicket($ticket, $row, $issue, $closed_by, $closed_at, $merge_reqs, $settings, $actor);
                     }
                 }
@@ -323,7 +380,7 @@ final class Sync
     /**
      * Add a followup to the ticket. Failures are logged and only rethrown when $strict.
      */
-    private static function addFollowup(int $tickets_id, string $html, bool $private, int $users_id, bool $strict = false): void
+    public static function addFollowup(int $tickets_id, string $html, bool $private, int $users_id, bool $strict = false): void
     {
         $ticket = new Ticket();
         if (!$ticket->getFromDB($tickets_id) || $ticket->fields['is_deleted'] || (int) $ticket->fields['status'] === Ticket::CLOSED) {
@@ -359,7 +416,9 @@ final class Sync
     ): void {
         $template = trim($settings['solution_template']);
         if ($template === '') {
-            $content = self::closedMessage($row, $issue, $closed_by, $closed_at, $merge_reqs);
+            // The solution is read by the requester: neutral text. The GitLab details (who, when, merge
+            // requests) go to the private followup (setting "Add a followup to the ticket").
+            $content = RequesterNotice::html(RequesterNotice::CLOSURE);
         } else {
             // Placeholders are replaced with escaped values: the template itself is trusted HTML/text.
             $content = strtr($template, [

@@ -14,7 +14,7 @@ use Glpi\Plugin\Hooks;
 use GlpiPlugin\Gitlabissues\Link;
 use GlpiPlugin\Gitlabissues\Profile as PluginProfile;
 
-define('PLUGIN_GITLABISSUES_VERSION', '1.0.2');
+define('PLUGIN_GITLABISSUES_VERSION', '1.0.3');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_GITLABISSUES_MIN_GLPI', '11.0.0');

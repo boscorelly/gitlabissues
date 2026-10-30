@@ -8,6 +8,7 @@ require __DIR__ . '/bootstrap.php';
 use GlpiPlugin\Gitlabissues\GitlabClient;
 use GlpiPlugin\Gitlabissues\GitlabException;
 use GlpiPlugin\Gitlabissues\Link;
+use GlpiPlugin\Gitlabissues\RequesterNotice;
 use GlpiPlugin\Gitlabissues\Settings;
 use GlpiPlugin\Gitlabissues\Sync;
 
@@ -44,6 +45,9 @@ function newTicket(string $name, string $content): Ticket {
     return $t;
 }
 function followups(int $tid): array { global $DB; return array_values(iterator_to_array($DB->request(['FROM' => 'glpi_itilfollowups', 'WHERE' => ['itemtype' => 'Ticket', 'items_id' => $tid], 'ORDER' => 'id']))); }
+function noticeIs(string $content, string $kind): bool { return html_entity_decode(strip_tags($content), ENT_QUOTES) === RequesterNotice::text($kind); }
+function publicFollowups(int $tid): array { return array_values(array_filter(followups($tid), fn($f) => (int) $f['is_private'] === 0)); }
+function privateFollowups(int $tid): array { return array_values(array_filter(followups($tid), fn($f) => (int) $f['is_private'] === 1)); }
 function linkOf(int $id): array { global $DB; return $DB->request(['FROM' => Link::getTable(), 'WHERE' => ['id' => $id]])->current(); }
 function status(int $tid): int { $t = new Ticket(); $t->getFromDB($tid); return (int) $t->fields['status']; }
 
@@ -128,6 +132,31 @@ ok('followup disabled in settings -> none', Link::defaultFollowupMode() === 'non
 Settings::save(['creation_followup' => '1']);
 ok('default back to private', Link::defaultFollowupMode() === 'private');
 
+echo "== Creation: neutral public message for the requester\n";
+Settings::save(['creation_followup' => '1', 'creation_followup_private' => '1', 'notify_requester' => '0', 'notify_requester_text' => '']);
+$t13 = newTicket('Info demandeur creation', '<p>x</p>');
+Link::createFromTicket($t13, 1, '', 2, true, 'private', true);
+$pub = publicFollowups($t13->getID()); $priv = privateFollowups($t13->getID());
+ok('notify on: one public followup with the neutral default text', count($pub) === 1 && noticeIs($pub[0]['content'], RequesterNotice::CREATION), json_encode($pub));
+ok('notify on: no GitLab detail in what the requester reads', count($pub) === 1 && !str_contains($pub[0]['content'], 'group/') && !str_contains($pub[0]['content'], '127.0.0.1') && !str_contains($pub[0]['content'], 'http'));
+ok('notify on: technical followup stays private and keeps the link', count($priv) === 1 && str_contains($priv[0]['content'], 'group/app#'));
+$t14 = newTicket('Info demandeur off', '<p>x</p>');
+Settings::save(['notify_requester' => '1']);
+Link::createFromTicket($t14, 1, '', 2, true, 'private', false);
+ok('technician unticks the box: no public message even if the setting is on', publicFollowups($t14->getID()) === []);
+$t15 = newTicket('Info demandeur defaut', '<p>x</p>');
+Link::createFromTicket($t15, 1, '', 2);
+ok('no choice given: the setting is used (on)', count(publicFollowups($t15->getID())) === 1);
+Settings::save(['notify_requester_text' => 'Merci <b>X</b> / ligne 2']);
+$t16 = newTicket('Info demandeur texte perso', '<p>x</p>');
+Link::createFromTicket($t16, 1, '', 2);
+$pub = publicFollowups($t16->getID());
+ok('custom text used, and escaped (no HTML injection)', count($pub) === 1 && str_contains($pub[0]['content'], '&lt;b&gt;X&lt;/b&gt;') && !str_contains($pub[0]['content'], '<b>X'), json_encode($pub));
+Settings::save(['notify_requester' => '0', 'notify_requester_text' => '']);
+$t17 = newTicket('Info demandeur setting off', '<p>x</p>');
+Link::createFromTicket($t17, 1, '', 2);
+ok('setting off (default): nothing public', publicFollowups($t17->getID()) === []);
+
 echo "== Cron: nothing to do while issues are open\n";
 runCron();
 $row = linkOf($link1->getID());
@@ -210,6 +239,39 @@ ok('failed actions: ticket untouched', count(followups($t7->getID())) === $n7);
 runCron();
 $row = linkOf($l7->getID());
 ok('retried at next run once the problem is gone', $row['state'] === 'closed' && count(followups($t7->getID())) === $n7 + 1 && $row['last_error'] === null);
+
+echo "== Closure: neutral message for the requester, details kept private\n";
+Settings::save(['notify_requester_close' => '1', 'notify_requester_close_text' => '', 'close_followup' => '1', 'close_followup_private' => '1', 'close_solve_ticket' => '0', 'solution_template' => '', 'solutiontypes_id' => '0']);
+$t11 = newTicket('Info fermeture', '<p>x</p>');
+$l11 = Link::createFromTicket($t11, 1, '', 2, true, 'none', false)['link'];
+mock('/_mock/close', ['project' => 1, 'iid' => $l11->fields['issue_iid'], 'by' => 'Jane Dev']);
+runCron();
+$pub = publicFollowups($t11->getID()); $priv = privateFollowups($t11->getID());
+ok('closure: neutral public followup', count($pub) === 1 && noticeIs($pub[0]['content'], RequesterNotice::CLOSURE) && !str_contains($pub[0]['content'], 'Jane') && !str_contains($pub[0]['content'], 'group/'), json_encode($pub));
+ok('closure: who/when/merge requests stay in the private followup', count($priv) === 1 && str_contains($priv[0]['content'], 'Jane Dev') && str_contains($priv[0]['content'], 'group/app#') && str_contains($priv[0]['content'], 'merge_requests/7'));
+
+Settings::save(['close_solve_ticket' => '1']);
+$t12 = newTicket('Info fermeture avec solution', '<p>x</p>');
+$l12 = Link::createFromTicket($t12, 1, '', 2, true, 'none', false)['link'];
+mock('/_mock/close', ['project' => 1, 'iid' => $l12->fields['issue_iid'], 'by' => 'Bob Dev']);
+runCron();
+$sol = $DB->request(['FROM' => 'glpi_itilsolutions', 'WHERE' => ['itemtype' => 'Ticket', 'items_id' => $t12->getID()]])->current();
+ok('solve on, no solution text: the default solution is neutral (no developer, no project)', $sol && noticeIs($sol['content'], RequesterNotice::CLOSURE) && !str_contains($sol['content'], 'Bob') && !str_contains($sol['content'], 'group/'), $sol['content'] ?? 'none');
+ok('solve on: no extra public followup (the solution already informs)', publicFollowups($t12->getID()) === []);
+ok('solve on: details still in the private followup', count($p = privateFollowups($t12->getID())) === 1 && str_contains($p[0]['content'], 'Bob Dev'));
+Settings::save(['notify_requester_close' => '0', 'close_solve_ticket' => '0', 'close_followup_private' => '0']);
+
+echo "== Refresh button: the actions do not depend on the rights of the technician who clicks\n";
+Settings::save(['notify_requester_close' => '0', 'close_solve_ticket' => '1', 'close_followup' => '1', 'close_followup_private' => '1', 'solution_template' => '']);
+$po = (int) $DB->request(['FROM' => 'glpi_users', 'WHERE' => ['name' => 'post-only']])->current()['id'];
+$t18 = new Ticket(); $id18 = $t18->add(['name' => 'Refresh solve', 'content' => '<p>x</p>', 'entities_id' => 0, '_users_id_requester' => $po]); $t18->getFromDB($id18);
+$l18 = Link::createFromTicket($t18, 1, '', 2, true, 'none', false)['link'];
+mock('/_mock/close', ['project' => 1, 'iid' => $l18->fields['issue_iid'], 'by' => 'Zoe Dev']);
+login();   // a plain technician session, NOT cron
+$label = Sync::refresh($l18);
+ok('refresh from a user session: link closed and ticket solved', linkOf($l18->getID())['state'] === 'closed' && status($id18) === Ticket::SOLVED, $label . ' / status ' . status($id18));
+ok('refresh: the user session is restored (still logged in, no cron marker left)', ($_SESSION['glpiID'] ?? 0) === 2 && !isset($_SESSION['glpicronuserrunning']));
+Settings::save(['close_solve_ticket' => '0', 'close_followup_private' => '0']);
 
 echo "== Cron log / purge\n";
 $log = $DB->request(['FROM' => 'glpi_crontasklogs', 'ORDER' => 'id DESC', 'LIMIT' => 1])->current();

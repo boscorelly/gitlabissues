@@ -23,7 +23,8 @@ class Profile extends CommonGLPI
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string|array
     {
         if ($item instanceof CoreProfile && $item->getField('interface') === 'central' && Session::haveRight('profile', READ)) {
-            return self::createTabEntry(Link::getTypeName(Session::getPluralNumber()));
+            // Same GitLab icon as the ticket tab (the class has no getIcon() of its own).
+            return self::createTabEntry(Link::getTypeName(Session::getPluralNumber()), 0, null, Link::getIcon());
         }
 
         return '';

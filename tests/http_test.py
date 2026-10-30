@@ -1,55 +1,6 @@
-#!/usr/bin/env python3
 """HTTP-level test: real GLPI web app + mock GitLab. Needs GLPI on :8088 and the mock on :8099."""
-import re, sys, json, urllib.request, urllib.parse, http.cookiejar, html
-
-BASE = 'http://127.0.0.1:8088'
-ok_n = fail_n = 0
-
-def check(name, cond, detail=''):
-    global ok_n, fail_n
-    if cond: ok_n += 1; print('  ok   - ' + name)
-    else: fail_n += 1; print('  FAIL - ' + name + (f'  [{detail[:300]}]' if detail else ''))
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *a, **k): return None
-
-class Client:
-    def __init__(self):
-        self.jar = http.cookiejar.CookieJar()
-        self.op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar), NoRedirect)
-        self.csrf = None
-    def req(self, path, data=None, headers=None, method=None):
-        url = path if path.startswith('http') else BASE + path
-        body = urllib.parse.urlencode(data, doseq=True).encode() if data is not None else None
-        r = urllib.request.Request(url, data=body, headers=headers or {}, method=method)
-        try:
-            resp = self.op.open(r, timeout=60)
-        except urllib.error.HTTPError as e:
-            resp = e
-        return resp.status if hasattr(resp, 'status') else resp.code, resp.read().decode('utf-8', 'replace'), dict(resp.headers)
-    def token(self, page):
-        m = re.search(r'name="_glpi_csrf_token"\s+value="([0-9a-f]+)"', page) or re.search(r'value="([0-9a-f]{64})"\s+name="_glpi_csrf_token"', page)
-        m = m or re.search(r'csrf[_-]token[^0-9a-f]{1,20}([0-9a-f]{64})', page, re.I)
-        return m.group(1) if m else None
-    def login(self, user, pwd):
-        s, page, _ = self.req('/')
-        tok = self.token(page)
-        s, body, h = self.req('/front/login.php', {'_glpi_csrf_token': tok, 'login_name': user, 'login_password': pwd, 'auth': 'local', 'submit': 'Post'})
-        return s in (302, 303)
-    def ajax_token(self):
-        s, page, _ = self.req('/front/central.php')
-        m = re.search(r'property="glpi:csrf_token"\s+content="([0-9a-f]+)"', page)
-        return m.group(1) if m else None
-
-def form_token(page, action):
-    # the CSRF token of the <form> posting to `action` (every form has its own single-use token)
-    m = re.search(r'action="[^"]*' + re.escape(action) + r'"[^>]*>\s*<input type="hidden" name="_glpi_csrf_token" value="([0-9a-f]+)"', page)
-    return m.group(1) if m else None
-
-def mock(path, body=None):
-    r = urllib.request.Request('http://127.0.0.1:8099' + path, data=json.dumps(body or {}).encode() if path != '/_mock/state' else None,
-                               method='GET' if path == '/_mock/state' else 'POST', headers={'Content-Type': 'application/json'})
-    return json.loads(urllib.request.urlopen(r).read())
+import sys, re, json, subprocess, urllib.parse
+from webclient import *
 
 ticket_id = int(sys.argv[1])
 TAB = urllib.parse.quote('GlpiPlugin\\Gitlabissues\\Link$1', safe='')
@@ -64,7 +15,15 @@ s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemt
 check('ticket GitLab tab renders', s == 200 and ('GitLab issues' in page or 'Issues GitLab' in page) and ('Create GitLab issue' in page or 'Créer une issue GitLab' in page), page[:300])
 check('tab form points to plugin route', f'/plugins/gitlabissues/Ticket/{ticket_id}/Issue' in page)
 check('tab lists existing issue', 'group/app#1' in page)
+check('tab offers the "inform the requester" box', 'name="notify_requester"' in page and 'type="checkbox"' in page)
 check('tab offers the followup choice', 'name="followup"' in page and 'value="public"' in page and 'value="none"' in page)
+
+def tab_entry(url, needle):
+    s, p, _ = a.req(url)
+    m = re.search(r"data-glpi-ajax-content='[^']*" + needle + r"[^']*'.*?</a>", p, re.S)
+    return m.group(0) if m else ''
+check('ticket tab has the GitLab icon', 'ti-brand-gitlab' in tab_entry('/front/ticket.form.php?id=%d' % ticket_id, 'Gitlabissues'))
+check('profile tab has the GitLab icon', 'ti-brand-gitlab' in tab_entry('/front/profile.form.php?id=4', 'Gitlabissues'), tab_entry('/front/profile.form.php?id=4', 'Gitlabissues')[-200:])
 
 s, page, _ = a.req('/front/ticket.form.php?id=%d' % ticket_id)
 check('ticket page lists the tab', s == 200 and ('GitLab issue' in page or 'Issue GitLab' in page or 'Issues GitLab' in page), str(s))
@@ -86,6 +45,20 @@ check('config POST without CSRF token rejected', s in (400, 403), str(s))
 
 s, body, _ = a.req('/plugins/gitlabissues/Projects?term=infra', headers={'X-Requested-With': 'XMLHttpRequest'})
 check('project search endpoint', s == 200 and json.loads(body)['results'][0]['text'] == 'group/infra', body[:200])
+
+def stored_rights(pid):
+    return subprocess.run(['mysql', '-uroot', 'glpi', '-N', '-e', f"select rights from glpi_profilerights where profiles_id={pid} and name='plugin_gitlabissues_issue'"], capture_output=True, text=True).stdout.strip()
+
+s, page, _ = a.req('/plugins/gitlabissues/Config')
+check('configuration page shows the rights per profile', 'name="profiles[]"' in page and 'Technician' in page and 'name="rights[6][]"' in page)
+check('configuration page has the requester messages', 'name="notify_requester"' in page and 'name="notify_requester_close_text"' in page)
+check('self-service profile is not listed', 'Self-Service' not in page)
+a.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': a.ajax_token(), 'profiles[]': ['6', '2'], 'rights[6][]': ['4']})
+check('rights table saves; ticking only "create" also stores "read" (5); unticked profile -> 0', stored_rights(6) == '5' and stored_rights(2) == '0', f'{stored_rights(6)} / {stored_rights(2)}')
+a.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': a.ajax_token(), 'profiles[]': ['1'], 'rights[1][]': ['1', '2', '4', '8']})
+check('a self-service profile cannot be given rights through the form', stored_rights(1) in ('0', ''), stored_rights(1))
+a.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': a.ajax_token(), 'profiles[]': ['6'], 'rights[6][]': ['1', '2', '4', '8']})
+check('technician rights restored (15)', stored_rights(6) == '15', stored_rights(6))
 
 # create via the real form flow
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
@@ -121,6 +94,13 @@ check('profile rights saved', s in (302, 303), str(s))
 ptok = a.ajax_token()
 s, body, h = a.req('/plugins/gitlabissues/Profile/4/Rights', {'_glpi_csrf_token': ptok, 'rights[]': ['1', '2', '4', '8']})
 check('profile rights restored (all four)', s in (302, 303), str(s))
+import subprocess
+ptok = a.ajax_token()
+a.req('/plugins/gitlabissues/Profile/4/Rights', {'_glpi_csrf_token': ptok, 'rights[]': ['4']})
+stored = subprocess.run(['mysql', '-uroot', 'glpi', '-N', '-e', "select rights from glpi_profilerights where profiles_id=4 and name='plugin_gitlabissues_issue'"], capture_output=True, text=True).stdout.strip()
+check('profile form: ticking only "create" also grants "read" (stored 5)', stored == '5', stored)
+ptok = a.ajax_token()
+a.req('/plugins/gitlabissues/Profile/4/Rights', {'_glpi_csrf_token': ptok, 'rights[]': ['1', '2', '4', '8']})
 
 print('== unprivileged user (post-only, no plugin right, no config right)')
 u = Client()
@@ -134,8 +114,10 @@ check('post-only user has a valid CSRF token', bool(utok))
 s, body, _ = u.req(f'/plugins/gitlabissues/Ticket/{ticket_id}/Issue', {'_glpi_csrf_token': utok, 'project_id': '1'})
 check('create issue denied by rights (valid CSRF)', s in (302, 403, 404) and len(mock('/_mock/state')['issues']) == n_before, str(s))
 utok = u.ajax_token()
+u.req('/plugins/gitlabissues/Config/Rights', {'_glpi_csrf_token': utok, 'profiles[]': ['6'], 'rights[6][]': []})
+check('rights table: change denied for an unprivileged user (valid CSRF)', stored_rights(6) == '15', stored_rights(6))
+utok = u.ajax_token()
 s, body, _ = u.req('/plugins/gitlabissues/Profile/4/Rights', {'_glpi_csrf_token': utok, 'rights[]': '15'})
 check('profile rights change denied by rights (valid CSRF)', s in (302, 403))
 
-print(f'\n{ok_n} passed, {fail_n} failed')
-sys.exit(1 if fail_n else 0)
+sys.exit(summary())
