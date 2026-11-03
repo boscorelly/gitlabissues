@@ -221,7 +221,7 @@ msgid "Moved to another project"
 msgstr ""
 
 #: src/Link.php
-msgid "No issue can be created for a closed or deleted ticket."
+msgid "No issue can be created for a solved, closed or deleted ticket."
 msgstr ""
 
 #: src/Link.php

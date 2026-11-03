@@ -14,7 +14,7 @@ use Glpi\Plugin\Hooks;
 use GlpiPlugin\Gitlabissues\Link;
 use GlpiPlugin\Gitlabissues\Profile as PluginProfile;
 
-define('PLUGIN_GITLABISSUES_VERSION', '1.0.6');
+define('PLUGIN_GITLABISSUES_VERSION', '1.0.7');
 
 // Minimal GLPI version, inclusive
 define('PLUGIN_GITLABISSUES_MIN_GLPI', '11.0.0');
@@ -45,6 +45,9 @@ function plugin_init_gitlabissues(): void
     // Setup > Plugins > GitLab Issues > configuration (route /plugins/gitlabissues/Config,
     // access is checked by the controller).
     $PLUGIN_HOOKS[Hooks::CONFIG_PAGE]['gitlabissues'] = 'Config';
+
+    // Stylesheet that draws the plugin's logo as the icon of its tabs.
+    $PLUGIN_HOOKS[Hooks::ADD_CSS]['gitlabissues'] = 'css/gitlabissues.css';
 
     // Language fallback: English when the plugin has no catalogue for the user's language (see below).
     $PLUGIN_HOOKS[Hooks::POST_INIT]['gitlabissues'] = 'plugin_gitlabissues_post_init';

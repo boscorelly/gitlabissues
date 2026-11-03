@@ -221,8 +221,8 @@ msgid "Moved to another project"
 msgstr "Déplacée vers un autre projet"
 
 #: src/Link.php
-msgid "No issue can be created for a closed or deleted ticket."
-msgstr "Aucune issue ne peut être créée pour un ticket clos ou placé dans la corbeille."
+msgid "No issue can be created for a solved, closed or deleted ticket."
+msgstr "Aucune issue ne peut être créée pour un ticket résolu, clos ou placé dans la corbeille."
 
 #: src/Link.php
 msgid "Select a GitLab project."

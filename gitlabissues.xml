@@ -3,6 +3,7 @@
     <name>GitLab Issues</name>
     <key>gitlabissues</key>
     <state>stable</state>
+    <logo>https://raw.githubusercontent.com/boscorelly/gitlabissues/main/logo.png</logo>
     <description>
         <short>
             <en>Create GitLab issues from GLPI tickets and automatically act on the ticket when the issue is closed.</en>
@@ -39,6 +40,11 @@ Créez une issue GitLab depuis un ticket en un clic (titre, description converti
         <author>GitLab Issues contributors</author>
     </authors>
     <versions>
+        <version>
+            <num>1.0.7</num>
+            <compatibility>~11.0.0</compatibility>
+            <download_url>https://github.com/boscorelly/gitlabissues/releases/download/1.0.7/glpi-gitlabissues-1.0.7.tar.bz2</download_url>
+        </version>
         <version>
             <num>1.0.6</num>
             <compatibility>~11.0.0</compatibility>

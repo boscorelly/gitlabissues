@@ -61,6 +61,11 @@ ajoutent des **suivis publics neutres**, sans aucun détail GitLab (ni projet, n
 
 Les deux textes sont modifiables. Les notifications GLPI s'appliquent aux suivis publics et aux solutions. Les détails techniques (qui a fermé l'issue, quand, merge requests) restent dans les suivis **privés**.
 
+## Logo
+`logo.png` (40x40) est l'icône du plugin : GLPI la lit comme logo du plugin (Marketplace), l'annuaire des plugins la lit dans la balise `<logo>` de `gitlabissues.xml`, et les onglets du plugin l'utilisent comme icône (feuille de style générée par `tools/logo-css.py`, depuis le dépôt git).
+C'est le logo de GitLab, tiré de [Simple Icons](https://simpleicons.org/) (CC0). GitLab et son logo sont des marques de GitLab Inc. ; il n'est utilisé ici que pour
+désigner le service auquel le plugin se connecte. Ce projet n'est ni affilié à GitLab Inc. ni approuvé par elle.
+
 ## Langues
 Anglais (`en_GB`, `en_US`) et français (`fr_FR`). Le plugin utilise **la langue de chaque utilisateur si une traduction existe, sinon l'anglais**
 (GLPI seul se rabattrait sur la langue par défaut de l'instance). Les messages neutres écrits dans le ticket pour le demandeur suivent la même règle (langue de l'interface de la personne qui les déclenche ; langue par défaut de l'instance pour l'action automatique).

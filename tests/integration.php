@@ -173,9 +173,14 @@ catch (RuntimeException $e) { ok('closed ticket: creation refused with an explic
 $td = newTicket('Ticket corbeille', '<p>x</p>'); $DB->update('glpi_tickets', ['is_deleted' => 1], ['id' => $td->getID()]); $td->getFromDB($td->getID());
 try { Link::createFromTicket($td, 1, '', 2, true); ok('ticket in the trash: creation refused', false); }
 catch (RuntimeException $e) { ok('ticket in the trash: creation refused', true); }
-ok('refused: nothing created on GitLab, no link stored', count(mock('/_mock/state')['issues']) === $issues_before && countElementsInTable(Link::getTable(), ['tickets_id' => [$tc->getID(), $td->getID()]]) === 0);
+ok('refused: nothing created on GitLab so far', count(mock('/_mock/state')['issues']) === $issues_before);
 $ts = newTicket('Ticket resolu', '<p>x</p>'); $DB->update('glpi_tickets', ['status' => Ticket::SOLVED], ['id' => $ts->getID()]); $ts->getFromDB($ts->getID());
-ok('solved ticket: still allowed (it can be reopened)', Link::createFromTicket($ts, 1, '', 2, true, 'none')['link']->getID() > 0);
+try { Link::createFromTicket($ts, 1, '', 2, true, 'none'); ok('solved ticket: creation refused', false); }
+catch (RuntimeException $e) { ok('solved ticket: creation refused with an explicit message', str_contains($e->getMessage(), 'résolu') || str_contains($e->getMessage(), 'solved')); }
+ok('solved ticket: the rule says no (tab hides the form)', Link::canCreateForTicket($ts) === false && Link::canCreateForTicket($tc) === false && Link::canCreateForTicket($td) === false);
+$DB->update('glpi_tickets', ['status' => Ticket::ASSIGNED], ['id' => $ts->getID()]); $ts->getFromDB($ts->getID());
+ok('solved ticket reopened: creation possible again', Link::canCreateForTicket($ts) === true && Link::createFromTicket($ts, 1, '', 2, true, 'none')['link']->getID() > 0);
+ok('refused tickets: nothing created on GitLab for them', countElementsInTable(Link::getTable(), ['tickets_id' => [$tc->getID(), $td->getID()]]) === 0);
 
 echo "== Cron: nothing to do while issues are open\n";
 runCron();
@@ -206,6 +211,9 @@ ok('link closed', linkOf($l2->getID())['state'] === 'closed');
 ok('ticket solved', status($t2->getID()) === Ticket::SOLVED, (string) status($t2->getID()));
 $sol = $DB->request(['FROM' => 'glpi_itilsolutions', 'WHERE' => ['itemtype' => 'Ticket', 'items_id' => $t2->getID()]])->current();
 ok('solution uses the template', $sol && str_contains($sol['content'], 'Fixed by Bob') && str_contains($sol['content'], 'group/app#' . $l2->fields['issue_iid']), $sol['content'] ?? 'none');
+$t2->getFromDB($t2->getID());
+try { Link::createFromTicket($t2, 1, '', 2, true); ok('ticket solved by GLPI itself (solution added by the automatic action): creation refused', false); }
+catch (RuntimeException $e) { ok('ticket solved by GLPI itself (solution added by the automatic action): creation refused', (int) $t2->fields['status'] === Ticket::SOLVED); }
 ok('GLPI notifications queued (automatic actions chain works)', countElementsInTable('glpi_queuednotifications') > $q_before);
 ok('no followup when close_followup is off', count(array_filter(followups($t2->getID()), fn($f) => str_contains($f['content'], 'closed'))) === 0);
 

@@ -85,7 +85,8 @@ class Link extends CommonDBTM
 
     public static function getIcon(): string
     {
-        return 'ti ti-brand-gitlab';
+        // Not a Tabler icon: the plugin's own logo (css/gitlabissues.css draws logo.png).
+        return 'gitlabissues-icon';
     }
 
     public function getRights($interface = 'central'): array
@@ -189,12 +190,13 @@ class Link extends CommonDBTM
     // ---------------------------------------------------------------- creation
 
     /**
-     * An issue cannot be created for a closed ticket, nor for a ticket in the trash. (A solved ticket is
-     * still allowed: it can be reopened, and the work may only be identified afterwards.)
+     * An issue cannot be created for a solved or closed ticket, nor for one in the trash. If a solved ticket
+     * is reopened, the creation is possible again.
      */
     public static function canCreateForTicket(Ticket $ticket): bool
     {
-        return (int) $ticket->fields['status'] !== Ticket::CLOSED && empty($ticket->fields['is_deleted']);
+        return !in_array((int) $ticket->fields['status'], [Ticket::SOLVED, Ticket::CLOSED], true)
+            && empty($ticket->fields['is_deleted']);
     }
 
     /**
@@ -221,7 +223,7 @@ class Link extends CommonDBTM
 
         // Enforced here, not only by hiding the form: a forged request must not get through either.
         if (!self::canCreateForTicket($ticket)) {
-            throw new RuntimeException(__('No issue can be created for a closed or deleted ticket.', 'gitlabissues'));
+            throw new RuntimeException(__('No issue can be created for a solved, closed or deleted ticket.', 'gitlabissues'));
         }
         if ($project_id <= 0) {
             throw new RuntimeException(__('Select a GitLab project.', 'gitlabissues'));

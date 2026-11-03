@@ -2,6 +2,11 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.7
+- **No issue can be created for a solved ticket either** (1.0.5 only blocked closed tickets and tickets in the trash). The tab hides the form and says why; the creation itself refuses such a ticket, so a forged request does not get through. If the ticket is reopened, the creation is possible again. Existing issues stay visible.
+- **The plugin's logo** (`logo.png`, the GitLab logo, 40x40) is now the icon of the plugin: GLPI reads it as the plugin's logo (route `/Plugin/gitlabissues/Logo`, used by the Marketplace), the plugin directory shows it through the `<logo>` tag of `gitlabissues.xml`, and it replaces the generic GitLab glyph as the icon of the plugin's tabs (ticket and profile). The stylesheet that draws the tab icon is in `public/` (the only folder GLPI 11 serves) and embeds `logo.png`; `tools/logo-css.py` regenerates it.
+- Tests: descriptor consistency (`tests/descriptor_test.py`), solved/closed/reopened tickets, logo and stylesheet served.
+
 ## 1.0.6
 - **Configuration page with GLPI's standard tabs on the left**, one tab per zone of settings, like the other administration pages: *GitLab connection*, *Issue creation*, *When the issue is closed on GitLab*, *Rights by profile*. Each tab is a form of its own and only saves its own settings; after a save, the same tab is reopened. The tab content is refused to people who do not have the *config* right, also when requested directly.
 - No change to the settings themselves: nothing to migrate.
