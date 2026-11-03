@@ -87,6 +87,16 @@ final class IssueController extends AbstractController
             throw new AccessDeniedHttpException();
         }
         $tickets_id = (int) $link->fields['tickets_id'];
+        $ticket     = $this->getReadableTicket($tickets_id);
+
+        // Same rule as the creation: the links of a solved, closed or deleted ticket are frozen
+        // (enforced here, not only by hiding the button).
+        if (!Link::canCreateForTicket($ticket)) {
+            Session::addMessageAfterRedirect(__('An issue cannot be unlinked from a solved, closed or deleted ticket.', 'gitlabissues'), false, ERROR);
+
+            return $this->backToTicket($tickets_id);
+        }
+
         $link->delete(['id' => $id], true);
         Session::addMessageAfterRedirect(__('The issue is no longer followed. It was not changed on GitLab.', 'gitlabissues'));
 

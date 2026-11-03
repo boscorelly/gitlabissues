@@ -69,6 +69,10 @@ msgid "Status: %s"
 msgstr ""
 
 #: src/Controller/IssueController.php
+msgid "An issue cannot be unlinked from a solved, closed or deleted ticket."
+msgstr ""
+
+#: src/Controller/IssueController.php
 msgid "The issue is no longer followed. It was not changed on GitLab."
 msgstr ""
 

@@ -85,8 +85,8 @@ class Link extends CommonDBTM
 
     public static function getIcon(): string
     {
-        // Not a Tabler icon: the plugin's own logo (css/gitlabissues.css draws logo.png).
-        return 'gitlabissues-icon';
+        // GLPI's monochrome glyph, like the other tabs. (logo.png is the plugin's logo for GLPI and the directory.)
+        return 'ti ti-brand-gitlab';
     }
 
     public function getRights($interface = 'central'): array
@@ -174,7 +174,7 @@ class Link extends CommonDBTM
             'can_create'   => $configured && self::canCreate() && self::canCreateForTicket($ticket) && $ticket->canAddFollowups(),
             'ticket_locked' => $configured && self::canCreate() && !self::canCreateForTicket($ticket),
             'can_update'   => self::canUpdate(),
-            'can_delete'   => self::canDelete(),
+            'can_delete'   => self::canDelete() && self::canCreateForTicket($ticket),
             'can_config'   => Session::haveRight('config', UPDATE),
             'default_project' => $default_id > 0
                 ? ['id' => $default_id, 'text' => Settings::get('default_project_path') ?: (string) $default_id]
@@ -190,8 +190,8 @@ class Link extends CommonDBTM
     // ---------------------------------------------------------------- creation
 
     /**
-     * An issue cannot be created for a solved or closed ticket, nor for one in the trash. If a solved ticket
-     * is reopened, the creation is possible again.
+     * The links of a solved or closed ticket, or of one in the trash, are frozen: no issue can be created
+     * for it and no issue can be unlinked from it. If the ticket is reopened, both are possible again.
      */
     public static function canCreateForTicket(Ticket $ticket): bool
     {

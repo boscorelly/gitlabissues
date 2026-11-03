@@ -2,6 +2,10 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.9
+- **Tab icon back to GLPI's monochrome GitLab glyph** (as in 1.0.6), like the other tabs. `logo.png` stays the plugin's logo for GLPI and for the plugin directory (`<logo>` tag); the stylesheet that drew it on the tabs is removed.
+- **"Unlink" follows the same rule as the creation**: the links of a solved, closed or deleted ticket are frozen. The button is hidden and the request itself is refused; the issues stay listed. If the ticket is reopened, unlinking is possible again.
+
 ## 1.0.8
 Second security review – fixes:
 - **Bypass of the 1.0.5 protection against GitLab quick actions**: a line break hidden in a link or image address, in inline code, or in a link without text could still put a command such as `/assign`, `/close` or `/label` at the start of a line of the issue description. Addresses are now percent-encoded and inline code is kept on one line.

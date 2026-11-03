@@ -22,22 +22,17 @@ def tab_entry(url, needle):
     s, p, _ = a.req(url)
     m = re.search(r"data-glpi-ajax-content='[^']*" + needle + r"[^']*'.*?</a>", p, re.S)
     return m.group(0) if m else ''
-check('ticket tab uses the plugin logo as icon', 'gitlabissues-icon' in tab_entry('/front/ticket.form.php?id=%d' % ticket_id, 'Gitlabissues') and 'ti-brand-gitlab' not in tab_entry('/front/ticket.form.php?id=%d' % ticket_id, 'Gitlabissues'))
-check('profile tab uses the plugin logo as icon', 'gitlabissues-icon' in tab_entry('/front/profile.form.php?id=4', 'Gitlabissues') and 'ti-brand-gitlab' not in tab_entry('/front/profile.form.php?id=4', 'Gitlabissues'), tab_entry('/front/profile.form.php?id=4', 'Gitlabissues')[-200:])
+check('ticket tab icon: GLPI\'s GitLab glyph, as in 1.0.6', 'ti-brand-gitlab' in tab_entry('/front/ticket.form.php?id=%d' % ticket_id, 'Gitlabissues'))
+check('profile tab icon: GLPI\'s GitLab glyph', 'ti-brand-gitlab' in tab_entry('/front/profile.form.php?id=4', 'Gitlabissues'))
 PNG = b'\x89PNG\r\n\x1a\n'
 logo_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logo.png'), 'rb').read()
 import base64, urllib.request as _ur, urllib.error as _ue
 r_logo = a.op.open(BASE + '/Plugin/gitlabissues/Logo'); raw_logo = r_logo.read()
 check('GLPI shows logo.png as the plugin icon (route used by Setup > Plugins / Marketplace)', r_logo.status == 200 and r_logo.headers.get('Content-Type', '').startswith('image/png') and raw_logo == logo_file, f'{r_logo.status} {len(raw_logo)} vs {len(logo_file)}')
-css_s = _ur.urlopen(BASE + '/plugins/gitlabissues/css/gitlabissues.css'); css_b = css_s.read().decode()
-m = re.search(r'data:image/png;base64,([A-Za-z0-9+/=]+)', css_b)
-check('stylesheet is served from public/ (even without being logged in) and draws exactly logo.png', css_s.status == 200 and 'text/css' in css_s.headers.get('Content-Type', '') and '.gitlabissues-icon' in css_b and m is not None and base64.b64decode(m.group(1)) == logo_file)
 def public(path):
     try: return _ur.urlopen(BASE + '/plugins/gitlabissues/' + path).status
     except _ue.HTTPError as e: return e.code
 check('only public/ is exposed: sources, hook, locales, README, tests are NOT downloadable', all(public(p) == 404 for p in ('setup.php', 'hook.php', 'src/Link.php', 'src/Settings.php', 'logo.png', 'README.md', 'locales/fr_FR.po', 'tests/http_test.py', 'templates/ticket_tab.html.twig')), str({p: public(p) for p in ('setup.php', 'src/Link.php', 'logo.png', 'locales/fr_FR.po')}))
-s, pg, _ = a.req('/front/ticket.form.php?id=%d' % ticket_id)
-check('the stylesheet is loaded by GLPI pages', 'plugins/gitlabissues/css/gitlabissues.css' in pg)
 
 s, page, _ = a.req('/front/ticket.form.php?id=%d' % ticket_id)
 check('ticket page lists the tab', s == 200 and ('GitLab issue' in page or 'Issue GitLab' in page or 'Issues GitLab' in page), str(s))
@@ -124,6 +119,22 @@ for status, label, locked in ((2, 'processing (assigned)', False), (5, 'solved',
         n_before = len(mock('/_mock/state')['issues'])
         a.req(f'/plugins/gitlabissues/Ticket/{tid_}/Issue', {'_glpi_csrf_token': a.ajax_token(), 'project_id': '2', 'allow_duplicate': '1', 'followup': 'none'})
         check(f'{label} ticket: a forged creation request is refused (no issue created)', len(mock('/_mock/state')['issues']) == n_before)
+
+# unlink follows the creation rule: possible on an open ticket, frozen once solved / closed
+def link_on(tid_):
+    subprocess.run(['mysql', '-uroot', 'glpi', '-e', f"insert into glpi_plugin_gitlabissues_links (tickets_id,users_id,gitlab_project_id,project_path,issue_iid,issue_id,issue_url,issue_title,state,date_creation,date_mod) values ({tid_},2,1,'group/app',800000+{tid_},1,'https://g.example/x','probe','opened',now(),now())"])
+    return subprocess.run(['mysql', '-uroot', 'glpi', '-N', '-e', f'select max(id) from glpi_plugin_gitlabissues_links where tickets_id={tid_}'], capture_output=True, text=True).stdout.strip()
+for status, label, frozen in ((2, 'processing (assigned)', False), (5, 'solved', True), (6, 'closed', True)):
+    tid_ = ticket_with_status(2)
+    lid = link_on(tid_)
+    subprocess.run(['mysql', '-uroot', 'glpi', '-e', f'update glpi_tickets set status={status} where id={tid_}'])
+    s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={tid_}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})
+    check(f'{label} ticket: "Unlink" button {"hidden" if frozen else "shown"}', (f'/Link/{lid}/Unlink' in page) == (not frozen), f'{s}')
+    check(f'{label} ticket: the linked issue stays listed', 'group/app#' in page)
+    a.req(f'/plugins/gitlabissues/Link/{lid}/Unlink', {'_glpi_csrf_token': a.ajax_token()})
+    still = subprocess.run(['mysql', '-uroot', 'glpi', '-N', '-e', f'select count(*) from glpi_plugin_gitlabissues_links where id={lid}'], capture_output=True, text=True).stdout.strip()
+    check(f'{label} ticket: unlink request {"refused, link kept" if frozen else "accepted"}', still == ('1' if frozen else '0'), still)
+s, pg, _ = a.req('/front/ticket.form.php?id=%d' % ticket_id)
 
 # create via the real form flow
 s, page, _ = a.req(f'/ajax/common.tabs.php?_target=/front/ticket.form.php&_itemtype=Ticket&_glpi_tab={TAB}&id={ticket_id}', headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': tok or ''})

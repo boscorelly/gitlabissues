@@ -62,7 +62,7 @@ ajoutent des **suivis publics neutres**, sans aucun détail GitLab (ni projet, n
 Les deux textes sont modifiables. Les notifications GLPI s'appliquent aux suivis publics et aux solutions. Les détails techniques (qui a fermé l'issue, quand, merge requests) restent dans les suivis **privés**.
 
 ## Logo
-`logo.png` (40x40) est l'icône du plugin : GLPI la lit comme logo du plugin (Marketplace), l'annuaire des plugins la lit dans la balise `<logo>` de `gitlabissues.xml`, et les onglets du plugin l'utilisent comme icône (feuille de style générée par `tools/logo-css.py`, depuis le dépôt git).
+`logo.png` (40x40) est l'icône du plugin : GLPI la lit comme logo du plugin (Marketplace), l'annuaire des plugins la lit dans la balise `<logo>` de `gitlabissues.xml`, les onglets du plugin gardent le glyphe GitLab monochrome de GLPI, comme les autres onglets.
 C'est le logo de GitLab, tiré de [Simple Icons](https://simpleicons.org/) (CC0). GitLab et son logo sont des marques de GitLab Inc. ; il n'est utilisé ici que pour
 désigner le service auquel le plugin se connecte. Ce projet n'est ni affilié à GitLab Inc. ni approuvé par elle.
 
