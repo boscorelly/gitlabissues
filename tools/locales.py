@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Maintains the translation catalogues. Run from the plugin root:  python3 tools/locales.py
+"""Maintains the translation catalogues. Run from the plugin root:  python3 tools/locales.py   (or with --check: read-only, fails if a catalogue is incomplete or out of date)
 
 - extracts every translatable string (__('…', 'gitlabissues'), _n('…', '…', …, 'gitlabissues')) from the PHP and Twig files;
 - writes locales/gitlabissues.pot (template for translators);
@@ -20,7 +20,7 @@ def unescape_php(s, quote):
 
 
 def extract():
-    files = glob.glob(f'{ROOT}/src/**/*.php', recursive=True) + glob.glob(f'{ROOT}/templates/*.twig') + [f'{ROOT}/setup.php', f'{ROOT}/hook.php']
+    files = glob.glob(f'{ROOT}/src/**/*.php', recursive=True) + glob.glob(f'{ROOT}/templates/**/*.twig', recursive=True) + [f'{ROOT}/setup.php', f'{ROOT}/hook.php']
     found = {}  # (msgid, plural) -> first file, in discovery order
     simple = re.compile(r"""__\(\s*(['"])((?:\\.|(?!\1).)*)\1\s*,\s*'%s'\s*\)""" % DOMAIN)
     plural = re.compile(r"""_n\(\s*'((?:\\.|[^'])*)'\s*,\s*'((?:\\.|[^'])*)'\s*,[^;]*?'%s'""" % DOMAIN)
@@ -88,7 +88,32 @@ def write_po(path, lang, found, translate):
     open(path, 'w', encoding='utf-8').write('\n'.join(out))
 
 
+def check():
+    """Read-only: fail if a catalogue lacks a translation, keeps an obsolete string, or if the English catalogues are stale."""
+    found = extract()
+    loc = f'{ROOT}/locales'
+    status = 0
+    print(f'{len(found)} translatable strings found')
+    for po in sorted(glob.glob(f'{loc}/*.po')):
+        lang = os.path.basename(po)[:-3]
+        have = read_po(po)
+        missing = [k for k in found if k not in have or (lang not in ENGLISH and not any(have[k]))]
+        obsolete = [k for k in have if k not in found]
+        print(f'{lang}: {len(found) - len(missing)}/{len(found)} strings, {len(obsolete)} obsolete')
+        for k in missing:
+            print(f'   MISSING  {k[0][:90]}')
+        for k in obsolete:
+            print(f'   obsolete {k[0][:90]}')
+        status |= 1 if (missing or obsolete) else 0
+        mo = po[:-3] + '.mo'
+        if not os.path.exists(mo) or os.path.getmtime(mo) < os.path.getmtime(po) - 1:
+            print(f'   {lang}.mo is older than its .po: run tools/locales.py'); status |= 1
+    return status
+
+
 def main():
+    if '--check' in sys.argv:
+        return check()
     found = extract()
     loc = f'{ROOT}/locales'
     print(f'{len(found)} translatable strings found')

@@ -46,6 +46,19 @@ def form_token(page, action):
     m = re.search(r'action="[^"]*' + re.escape(action) + r'"[^>]*>\s*<input type="hidden" name="_glpi_csrf_token" value="([0-9a-f]+)"', page)
     return m.group(1) if m else None
 
+def config_tab(c, n):
+    """(status, html) of tab n of the configuration page, loaded the way GLPI's page loads it (ajax)."""
+    u = ('/ajax/common.tabs.php?_target=/plugins/gitlabissues/Config&_itemtype=GlpiPlugin%5CGitlabissues%5CConfigPage'
+         f'&_glpi_tab=GlpiPlugin%5CGitlabissues%5CConfigTabs%24{n}&id=0')
+    s, body, _ = c.req(u, headers={'X-Requested-With': 'XMLHttpRequest', 'X-Glpi-Csrf-Token': c.ajax_token() or ''})
+    return s, body
+
+def opened_tab(page):
+    """Number of the configuration tab that GLPI's page script opens on load (the one remembered in the session)."""
+    m = re.search(r"\$\('a\[data-bs-target=[^;]{0,200}\.tab\('show'\);", page)
+    n = re.search(r'ConfigTabs_(\d)', m.group(0)) if m else None
+    return n.group(1) if n else None
+
 def mock(path, body=None):
     r = urllib.request.Request('http://127.0.0.1:8099' + path, data=json.dumps(body or {}).encode() if path != '/_mock/state' else None,
                                method='GET' if path == '/_mock/state' else 'POST', headers={'Content-Type': 'application/json'})

@@ -71,6 +71,8 @@ def try_all(c, label, expect):
     check(f'[{label}] project search -> {"allowed" if expect["search"] else "refused"}', (s == 200) == expect['search'], f'status {s}')
     s, _, _ = c.req('/plugins/gitlabissues/Config')
     check(f'[{label}] configuration page refused (needs GLPI "config" right)', s in (302, 403))
+    s, content = config_tab(c, 1)
+    check(f'[{label}] configuration tab content refused too', 'gitlab_url' not in content and '<form' not in content)
 
 cases = [
     ('no plugin right',  0,         dict(see_tab=False, create=False, refresh=False, unlink=False, search=False)),

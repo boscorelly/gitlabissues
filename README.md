@@ -11,8 +11,9 @@ Tested on **GLPI 11.0.11** (PHP 8.3, MariaDB 10.11) against a mock of the GitLab
 ## Install
 1. Put the `gitlabissues` folder in GLPI's `plugins/` directory, then install and activate it in *Setup > Plugins*.
 2. Make sure GLPI's system cron runs (`* * * * * php /path/to/glpi/front/cron.php`); the automatic action `CheckIssues` is in CLI mode.
-3. *Setup > Plugins > GitLab Issues*: GitLab URL and access token (scope **`api`**, role **Reporter** or higher; stored encrypted),
-   default project, behaviour when an issue is closed. "Save and test the connection" checks URL, token and scopes.
+3. *Setup > Plugins > GitLab Issues* opens a page with one tab per zone of settings (tabs on the left, like GLPI's other administration pages):
+   **GitLab connection** (URL and access token with scope **`api`**, role **Reporter** or higher, stored encrypted; "Save and test the connection" checks URL, token and scopes),
+   **Issue creation**, **When the issue is closed on GitLab**, **Rights by profile**.
 
 ## Use
 - Ticket tab **GitLab issues**: pick a project, optional extra labels, choose the followup (private / public / none), create the issue.

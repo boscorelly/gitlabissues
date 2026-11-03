@@ -8,6 +8,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: src/ConfigPage.php
+msgid "GitLab Issues"
+msgstr ""
+
+#: src/ConfigTabs.php
+msgid "GitLab connection"
+msgstr ""
+
+#: src/ConfigTabs.php
+msgid "Issue creation"
+msgstr ""
+
+#: src/ConfigTabs.php
+msgid "When the issue is closed on GitLab"
+msgstr ""
+
+#: src/ConfigTabs.php
+msgid "Rights by profile"
+msgstr ""
+
 #: src/Controller/ConfigController.php
 msgid "The GitLab URL must start with http:// or https://"
 msgstr ""
@@ -266,172 +286,148 @@ msgstr ""
 msgid "The GitLab issue %s was moved to another project. It is not followed anymore: the ticket is left unchanged."
 msgstr ""
 
-#: templates/config.html.twig
-msgid "GitLab Issues"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "GitLab connection"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "GitLab URL"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Access token"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "(unchanged)"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "A project or group access token with the \"api\" scope and the Reporter role (or more) is enough. It is stored encrypted."
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Save and test the connection"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Issue creation"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Default project"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Issue title"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Placeholders: {id} (ticket number) and {title}."
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Default labels"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Comma separated."
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Create confidential issues"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Mention requesters and assignees in the issue"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Add a followup to the ticket when the issue is created"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Private followup"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "When an issue is created, add a public followup (the technician can change this for each issue)"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Message to the requester"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Plain text. Empty = default message."
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Copy the ticket attachments and images to GitLab"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Maximum attachment size (MB)"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "When the issue is closed on GitLab"
-msgstr ""
-
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "For technicians"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Add a followup with the GitLab details (who closed the issue, when, merge requests)"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
+msgid "Private followup"
+msgstr ""
+
+#: templates/config/closure.html.twig
 msgid "For the requester"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Requesters, who are often not technicians, never see the GitLab tab. These neutral public messages tell them that their request was forwarded and completed, without any GitLab detail (project, developer, link). GLPI notifications apply to public followups."
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Nothing"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "A public followup with the message below"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "The ticket is solved, with the message below as the solution (notifications and automatic actions apply)"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
+msgid "Message to the requester"
+msgstr ""
+
+#: templates/config/closure.html.twig
+msgid "Plain text. Empty = default message."
+msgstr ""
+
+#: templates/config/closure.html.twig
 msgid "Solution type (when the ticket is solved)"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Advanced: custom solution text"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Optional. Replaces the message above as the text of the solution (HTML allowed). Placeholders: {issue}, {issue_url}, {closed_by}, {closed_at}, {ticket_id}. They show GitLab details to the requester."
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Author"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "Author of the automatic followups and solutions"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/closure.html.twig
 msgid "The user who created the issue"
 msgstr ""
 
-#: templates/config.html.twig
-msgid "Rights by profile"
+#: templates/config/connection.html.twig
+msgid "GitLab URL"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/connection.html.twig
+msgid "Access token"
+msgstr ""
+
+#: templates/config/connection.html.twig
+msgid "(unchanged)"
+msgstr ""
+
+#: templates/config/connection.html.twig
+msgid "A project or group access token with the \"api\" scope and the Reporter role (or more) is enough. It is stored encrypted."
+msgstr ""
+
+#: templates/config/connection.html.twig
+msgid "Save and test the connection"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Default project"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Issue title"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Placeholders: {id} (ticket number) and {title}."
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Default labels"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Comma separated."
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Create confidential issues"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Mention requesters and assignees in the issue"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Add a followup to the ticket when the issue is created"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "When an issue is created, add a public followup (the technician can change this for each issue)"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Copy the ticket attachments and images to GitLab"
+msgstr ""
+
+#: templates/config/creation.html.twig
+msgid "Maximum attachment size (MB)"
+msgstr ""
+
+#: templates/config/rights.html.twig
 msgid "Rights are cumulative: \"Read\" is required for the others. The same rights can be edited in the \"GitLab issues\" tab of each profile (Administration > Profiles). Self-service profiles cannot use the plugin."
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/rights.html.twig
 msgid "Profile"
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/rights.html.twig
 msgid "You need the update right on profiles to change these rights."
 msgstr ""
 
-#: templates/config.html.twig
+#: templates/config/rights.html.twig
 msgid "Save the rights"
-msgstr ""
-
-#: templates/config.html.twig
-msgid "Search a project…"
 msgstr ""
 
 #: templates/profile.html.twig
@@ -500,4 +496,8 @@ msgstr ""
 
 #: templates/ticket_tab.html.twig
 msgid "Create another issue even if one is already open in this project"
+msgstr ""
+
+#: templates/ticket_tab.html.twig
+msgid "Search a project…"
 msgstr ""

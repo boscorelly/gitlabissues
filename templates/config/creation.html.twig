@@ -1,0 +1,45 @@
+<form method="post" action="{{ form_url }}" class="m-3">
+    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="_tab" value="creation">
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ __('Issue creation', 'gitlabissues') }}</h3></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">{{ __('Default project', 'gitlabissues') }}</label>
+                <select id="gli_default_project" name="default_project_id" class="form-select" style="width:100%">
+                    {% if settings.default_project_id and settings.default_project_id != '0' %}
+                        <option value="{{ settings.default_project_id }}" selected>{{ settings.default_project_path ?: settings.default_project_id }}</option>
+                    {% endif %}
+                </select>
+                <input type="hidden" id="gli_default_project_path" name="default_project_path" value="{{ settings.default_project_path }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Issue title', 'gitlabissues') }}</label>
+                <input type="text" name="title_template" class="form-control" value="{{ settings.title_template }}">
+                <div class="form-text">{{ __('Placeholders: {id} (ticket number) and {title}.', 'gitlabissues') }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ __('Default labels', 'gitlabissues') }}</label>
+                <input type="text" name="default_labels" class="form-control" value="{{ settings.default_labels }}">
+                <div class="form-text">{{ __('Comma separated.', 'gitlabissues') }}</div>
+            </div>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="confidential" value="1" {{ settings.confidential == '1' ? 'checked' }}><span class="form-check-label">{{ __('Create confidential issues', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="include_people" value="1" {{ settings.include_people == '1' ? 'checked' }}><span class="form-check-label">{{ __('Mention requesters and assignees in the issue', 'gitlabissues') }}</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="creation_followup" value="1" {{ settings.creation_followup == '1' ? 'checked' }}><span class="form-check-label">{{ __('Add a followup to the ticket when the issue is created', 'gitlabissues') }}</span></label>
+            <label class="form-check ms-4"><input class="form-check-input" type="checkbox" name="creation_followup_private" value="1" {{ settings.creation_followup_private == '1' ? 'checked' }}><span class="form-check-label">{{ __('Private followup', 'gitlabissues') }}</span></label>
+            <label class="form-check mt-2"><input class="form-check-input" type="checkbox" name="notify_requester" value="1" {{ settings.notify_requester == '1' ? 'checked' }}><span class="form-check-label">{{ __('When an issue is created, add a public followup (the technician can change this for each issue)', 'gitlabissues') }}</span></label>
+            <div class="ms-4 mb-2">
+                <textarea name="notify_requester_text" class="form-control" rows="2" aria-label="{{ __('Message to the requester', 'gitlabissues') }}" placeholder="{{ default_notice_creation }}">{{ settings.notify_requester_text }}</textarea>
+                <div class="form-text">{{ __('Message to the requester', 'gitlabissues') }} – {{ __('Plain text. Empty = default message.', 'gitlabissues') }}</div>
+            </div>
+            <label class="form-check"><input class="form-check-input" type="checkbox" name="upload_attachments" value="1" {{ settings.upload_attachments == '1' ? 'checked' }}><span class="form-check-label">{{ __('Copy the ticket attachments and images to GitLab', 'gitlabissues') }}</span></label>
+            <div class="mt-2" style="max-width: 16rem">
+                <label class="form-label">{{ __('Maximum attachment size (MB)', 'gitlabissues') }}</label>
+                <input type="number" min="1" name="max_attachment_mb" class="form-control" value="{{ settings.max_attachment_mb }}">
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
+</form>
+

@@ -2,6 +2,10 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.6
+- **Configuration page with GLPI's standard tabs on the left**, one tab per zone of settings, like the other administration pages: *GitLab connection*, *Issue creation*, *When the issue is closed on GitLab*, *Rights by profile*. Each tab is a form of its own and only saves its own settings; after a save, the same tab is reopened. The tab content is refused to people who do not have the *config* right, also when requested directly.
+- No change to the settings themselves: nothing to migrate.
+
 ## 1.0.5
 Security review – fixes:
 - **GitLab quick actions and mentions injected through the ticket**: text written by the requester was copied as is into the issue description, so a line such as `/close`, `/move group/other` or `/assign @someone` could act on GitLab with the token's rights, and `@all` / `@name` notified GitLab users. Lines starting with `/` are now escaped and mentions neutralised (e-mail addresses and code blocks are untouched).

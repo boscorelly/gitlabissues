@@ -12,6 +12,7 @@ def pages(lang):
     q(f"update glpi_users set language={'NULL' if lang is None else repr(lang)} where name='glpi'")
     a = Client(); assert a.login('glpi', 'glpi')
     _, cfg, _ = a.req('/plugins/gitlabissues/Config')
+    cfg += config_tab(a, 2)[1]   # 'Default project' lives in the creation tab
     _, prof, _ = a.req('/front/profile.form.php?id=4')
     tid = open('/tmp/last_ticket_id').read().strip()
     _, tick, _ = a.req('/front/ticket.form.php?id=' + tid)
