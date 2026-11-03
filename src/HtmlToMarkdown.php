@@ -245,7 +245,8 @@ final class HtmlToMarkdown
                 return $this->wrap($this->inlineChildren($node), '~~');
 
             case 'code':
-                $code  = $node->textContent;
+                // Inline code stays on one line (a line break could start a GitLab quick action).
+                $code  = trim(preg_replace('/\s+/u', ' ', $node->textContent) ?? '');
                 $fence = str_contains($code, '`') ? '``' : '`';
 
                 return $code === '' ? '' : $fence . ($fence === '``' ? ' ' . $code . ' ' : $code) . $fence;
@@ -257,7 +258,9 @@ final class HtmlToMarkdown
                     return $text;
                 }
 
-                return '[' . ($text !== '' ? $text : $href) . '](' . $this->escapeUrl($href) . ')';
+                $url = $this->escapeUrl($href);
+
+                return '[' . ($text !== '' ? $text : self::neutraliseMentions($url)) . '](' . $url . ')';
 
             case 'img':
                 return $this->image($node);
@@ -307,9 +310,18 @@ final class HtmlToMarkdown
         return preg_match('#^(https?://|mailto:)#i', $url) ? $url : null;
     }
 
+    /**
+     * Percent-encode what would end the Markdown link or start a new line: whitespace (line breaks
+     * included), control characters, parentheses and angle brackets. A line break inside an URL could
+     * otherwise put a GitLab quick action at the start of a line.
+     */
     private function escapeUrl(string $url): string
     {
-        return str_replace([' ', '(', ')'], ['%20', '%28', '%29'], $url);
+        return preg_replace_callback(
+            '/[\s\x00-\x1F\x7F()<>]/u',
+            static fn(array $m): string => rawurlencode($m[0]),
+            $url
+        ) ?? '';
     }
 
     /**
@@ -343,6 +355,14 @@ final class HtmlToMarkdown
     {
         $text = preg_replace('~^([\s\x{00A0}]*)/~mu', '$1\\\\/', $text) ?? $text;
 
+        return self::neutraliseMentions($text);
+    }
+
+    /**
+     * "@name" / "@all" -> "@" + zero-width space + "name": no longer a GitLab mention (e-mails untouched).
+     */
+    public static function neutraliseMentions(string $text): string
+    {
         return preg_replace('/(?<![\w@.])@(?=[\w.-])/u', "@\u{200B}", $text) ?? $text;
     }
 

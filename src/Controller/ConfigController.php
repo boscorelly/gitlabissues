@@ -66,8 +66,23 @@ final class ConfigController extends AbstractController
         if (!isset(self::FIELDS[$tab])) {
             return $this->backTo('connection');
         }
-        // Only the settings of this tab, whatever else was posted.
-        $input = array_intersect_key($request->request->all(), array_flip(self::FIELDS[$tab]));
+        // Only the settings of this tab, whatever else was posted; and all of them valid, or nothing is saved.
+        $posted = $request->request->all();
+        $input  = [];
+        foreach (self::FIELDS[$tab] as $name) {
+            if (!array_key_exists($name, $posted)) {
+                continue;
+            }
+            if (!is_scalar($posted[$name])) {
+                return $this->invalid($tab);
+            }
+            $input[$name] = (string) $posted[$name];
+        }
+        foreach (self::NUMBERS[$tab] ?? [] as $number) {
+            if (isset($input[$number]) && !preg_match('/^\d{0,9}$/', trim($input[$number]))) {
+                return $this->invalid($tab);
+            }
+        }
 
         // Checkboxes are absent from the POST when unchecked.
         foreach (self::FLAGS[$tab] ?? [] as $flag) {
@@ -88,8 +103,10 @@ final class ConfigController extends AbstractController
 
         if ($tab === 'closure') {
             // One choice for the requester at closure; stored in the two existing settings (nothing to migrate).
-            $mode = (string) $request->request->get('requester_close_mode', 'none');
-            $mode = in_array($mode, ['none', 'followup', 'solve'], true) ? $mode : 'none';
+            $mode = $posted['requester_close_mode'] ?? null;
+            if (!in_array($mode, ['none', 'followup', 'solve'], true)) {
+                return $this->invalid($tab);
+            }
             $input['close_solve_ticket']     = $mode === 'solve' ? '1' : '0';
             $input['notify_requester_close'] = $mode === 'followup' ? '1' : '0';
         }
@@ -150,6 +167,16 @@ final class ConfigController extends AbstractController
         Session::addMessageAfterRedirect(__('Rights updated.', 'gitlabissues'));
 
         return $this->backTo('rights');
+    }
+
+    /**
+     * Refuse the whole form: a partly applied invalid form would silently overwrite good settings.
+     */
+    private function invalid(string $tab): Response
+    {
+        Session::addMessageAfterRedirect(__('Invalid form data. Nothing was saved.', 'gitlabissues'), false, ERROR);
+
+        return $this->backTo($tab);
     }
 
     private function testConnection(): void

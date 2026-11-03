@@ -45,6 +45,10 @@ msgid "Rights updated."
 msgstr "Droits mis à jour."
 
 #: src/Controller/ConfigController.php
+msgid "Invalid form data. Nothing was saved."
+msgstr "Données de formulaire invalides. Rien n'a été enregistré."
+
+#: src/Controller/ConfigController.php
 msgid "Connection successful: GitLab %1$s, authenticated as %2$s."
 msgstr "Connexion réussie : GitLab %1$s, authentifié en tant que %2$s."
 
@@ -175,6 +179,10 @@ msgstr "Demandeur"
 #: src/IssueBuilder.php
 msgid "Assigned to"
 msgstr "Attribué à"
+
+#: src/IssueBuilder.php
+msgid "Attachment not copied (you are not allowed to see it): %s"
+msgstr "Pièce jointe non copiée (vous n'avez pas le droit de la voir) : %s"
 
 #: src/IssueBuilder.php
 msgid "Attachment not copied (limit of %d files): %s"

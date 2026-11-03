@@ -163,6 +163,10 @@ $lq = Link::createFromTicket($tq, 1, '', 2, true, 'none')['link'];
 $dq = mock('/_mock/state')['issues']['1/' . $lq->fields['issue_iid']]['description'] ?? '';
 ok('description: no line starts with a GitLab quick action', $dq !== '' && !preg_match('~^[\s\x{00A0}]*/~mu', $dq), $dq);
 ok('description: "@all" is not a mention anymore', str_contains($dq, "@\u{200B}all") && !preg_match('/(?<![\w@.])@all/u', $dq));
+$tt = newTicket('Panne @all urgent', '<p>x</p>');
+$lt = Link::createFromTicket($tt, 1, '', 2, true, 'none')['link'];
+$title_sent = mock('/_mock/state')['issues']['1/' . $lt->fields['issue_iid']]['title'] ?? '';
+ok('issue title: "@all" from the ticket title is not a mention anymore', str_contains($title_sent, "@\u{200B}all") && !preg_match('/(?<![\w@.])@all/u', $title_sent), $title_sent);
 ok('URLs from GitLab: only http(s) kept', Link::httpUrl('javascript:alert(1)') === '' && Link::httpUrl('https://g.example/x') === 'https://g.example/x');
 
 echo "== Closed / deleted tickets: no issue can be created\n";

@@ -11,3 +11,4 @@ python3 "$D/visibility_test.py" | grep -v "^  ok" | tail -14
 python3 "$D/language_test.py" | grep -v "^  ok" | tail -14
 python3 "$D/../tools/locales.py" --check | tail -4
 python3 "$D/descriptor_test.py" | grep -v "^  ok" | tail -6
+python3 "$D/fuzz_test.py" | grep -v "^  ok" | tail -8

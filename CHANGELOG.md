@@ -2,6 +2,15 @@
 
 Release checklist: bump `PLUGIN_GITLABISSUES_VERSION` in `setup.php`, add the version (compatibility + `download_url`) to `gitlabissues.xml`, update this file, tag and publish a release with the `glpi-gitlabissues-<version>.tar.bz2` archive.
 
+## 1.0.8
+Second security review – fixes:
+- **Bypass of the 1.0.5 protection against GitLab quick actions**: a line break hidden in a link or image address, in inline code, or in a link without text could still put a command such as `/assign`, `/close` or `/label` at the start of a line of the issue description. Addresses are now percent-encoded and inline code is kept on one line.
+- **Invalid configuration forms were partly saved**: an unexpected value (for instance a list instead of a text) could silently overwrite good settings with empty or default values, and produced a PHP warning. Such a form is now refused as a whole, with a message, and nothing is saved.
+- `@all` / `@name` in the **issue title** (taken from the ticket title) are neutralised too.
+- Attachments are only copied if GLPI itself lets the user see them from the ticket (defence in depth: today the plugin only copies documents attached to the ticket, which anyone who can read it may open).
+- Release workflow: third-party actions pinned to a commit; the checkout no longer keeps the token.
+- New robustness test (`tests/fuzz_test.py`): unexpected input on every route gives no server error, no PHP warning, and changes nothing.
+
 ## 1.0.7
 - **No issue can be created for a solved ticket either** (1.0.5 only blocked closed tickets and tickets in the trash). The tab hides the form and says why; the creation itself refuses such a ticket, so a forged request does not get through. If the ticket is reopened, the creation is possible again. Existing issues stay visible.
 - **The plugin's logo** (`logo.png`, the GitLab logo, 40x40) is now the icon of the plugin: GLPI reads it as the plugin's logo (route `/Plugin/gitlabissues/Logo`, used by the Marketplace), the plugin directory shows it through the `<logo>` tag of `gitlabissues.xml`, and it replaces the generic GitLab glyph as the icon of the plugin's tabs (ticket and profile). The stylesheet that draws the tab icon is in `public/` (the only folder GLPI 11 serves) and embeds `logo.png`; `tools/logo-css.py` regenerates it.

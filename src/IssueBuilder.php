@@ -7,6 +7,7 @@ use Document;
 use Dropdown;
 use Glpi\RichText\RichText;
 use Html;
+use Session;
 use Ticket;
 
 /**
@@ -96,7 +97,8 @@ final class IssueBuilder
         ]);
         $title = trim(preg_replace('/\s+/u', ' ', $title) ?? $title);
 
-        return mb_substr($title, 0, 255);
+        // The title comes from the requester too: no "@all" / "@name" notification on GitLab.
+        return mb_substr(HtmlToMarkdown::neutraliseMentions($title), 0, 255);
     }
 
     private function labels(string $default, string $extra): string
@@ -251,6 +253,13 @@ final class IssueBuilder
             }
             $name = (string) ($doc->fields['filename'] ?: basename((string) $doc->fields['filepath']));
             $path = GLPI_DOC_DIR . '/' . $doc->fields['filepath'];
+
+            // Same rule as GLPI when the user opens the file from the ticket: a document he may not
+            // see (e.g. one of a private followup) must not be copied to GitLab either.
+            if (Session::getLoginUserID() && !$doc->canViewFile(['itemtype' => Ticket::class, 'items_id' => $ticket->getID()])) {
+                $warnings[] = sprintf(__('Attachment not copied (you are not allowed to see it): %s', 'gitlabissues'), $name);
+                continue;
+            }
 
             if ($count >= self::MAX_ATTACHMENTS) {
                 $warnings[] = sprintf(__('Attachment not copied (limit of %d files): %s', 'gitlabissues'), self::MAX_ATTACHMENTS, $name);

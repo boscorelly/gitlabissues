@@ -13,7 +13,10 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Third-party actions pinned to a commit (a moving tag like @v4 could be repointed to other code).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Check that the tag matches the plugin version
         env:
@@ -25,7 +28,7 @@ jobs:
           grep -q "<num>$VERSION</num>" gitlabissues.xml || { echo "Version $VERSION missing in gitlabissues.xml"; exit 1; }
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.3'
 

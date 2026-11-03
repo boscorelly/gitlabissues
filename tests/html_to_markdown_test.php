@@ -46,5 +46,19 @@ check('mention neutralised (zero-width space after @)', "Merci @\u{200B}all et @
 check('e-mail address untouched', 'mail: a@b.fr', $c->convert('<p>mail: a@b.fr</p>'));
 check('code block untouched (GitLab ignores quick actions there)', "```\n/close\n```", $c->convert('<pre><code>/close</code></pre>'));
 
+// Bypasses found in the second security review: line breaks hidden in URLs or inline code
+foreach ([
+    'newline in a link URL'   => '<p><a href="https://x.example/a' . "\n" . '/assign @me now">doc</a></p>',
+    'newline in an image URL' => '<p><img src="https://x.example/i.png' . "\n" . '/close now" alt="i"></p>',
+    'inline code over lines'  => '<p>voir <code>abc' . "\n" . '/label ~urgent</code></p>',
+    'link without text'       => '<p><a href="https://x.example/a' . "\n" . '/close"></a></p>',
+    'hard break then command' => '<p>a<br>/close</p>',
+] as $label => $html) {
+    $out = $c->convert($html);
+    if (preg_match('~^[\s\x{00A0}]*/[a-z_]+~mu', $out)) { $fail++; echo "FAIL - $label: quick action at a line start\n$out\n"; }
+    else { echo "ok   - $label: no quick action at a line start\n"; }
+}
+check('URL line break is percent-encoded', '[doc](https://x.example/a%0A/assign%20@me%20now)', $c->convert('<p><a href="https://x.example/a' . "\n" . '/assign @me now">doc</a></p>'));
+
 echo $fail === 0 ? "\nALL PASSED\n" : "\n$fail FAILED\n";
 exit($fail === 0 ? 0 : 1);
